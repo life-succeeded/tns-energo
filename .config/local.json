@@ -1,0 +1,6 @@
+{
+  "port": 8080,
+  "databases": {
+    "postgres": "postgres://postgres:sk8McoXvG7Cs@localhost/tns-energo"
+  }
+}
