@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"tns-energo/api/handlers"
 	"tns-energo/config"
 	librouter "tns-energo/lib/http/router"
 	"tns-energo/lib/http/router/middleware"
@@ -10,6 +11,7 @@ import (
 	"tns-energo/lib/http/router/status"
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/user"
 )
 
 type ServerBuilder struct {
@@ -28,6 +30,13 @@ func NewServerBuilder(ctx context.Context, log liblog.Logger, settings config.Se
 
 func (s *ServerBuilder) AddDebug() {
 	s.router.Install(plugin.NewPProf())
+}
+
+func (s *ServerBuilder) AddUsers(userService user.Service) {
+	subRouter := s.router.SubRouter("/users")
+	subRouter.HandlePost("/register", handlers.RegisterHandler(userService))
+	subRouter.HandlePost("/login", handlers.LoginHandler(userService))
+	subRouter.HandlePut("/refresh-token/{refresh_token}", handlers.RefreshTokenHandler(userService))
 }
 
 func (s *ServerBuilder) Build() libserver.Server {

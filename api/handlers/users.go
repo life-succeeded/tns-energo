@@ -1,0 +1,65 @@
+package handlers
+
+import (
+	"net/http"
+	"tns-energo/lib/http/router"
+	"tns-energo/service/user"
+)
+
+func RegisterHandler(userService user.Service) router.Handler {
+	return func(c router.Context) error {
+		var request user.RegisterRequest
+		if err := c.ReadJson(&request); err != nil {
+			return err
+		}
+
+		log := c.Log()
+		response, err := userService.Register(c.Ctx(), log, request)
+		if err != nil {
+			log.Errorf("failed to register user: %v", err)
+			return err
+		}
+
+		return c.WriteJson(http.StatusOK, response)
+	}
+}
+
+func LoginHandler(userService user.Service) router.Handler {
+	return func(c router.Context) error {
+		var request user.LoginRequest
+		if err := c.ReadJson(&request); err != nil {
+			return err
+		}
+
+		log := c.Log()
+		response, err := userService.Login(c.Ctx(), log, request)
+		if err != nil {
+			log.Errorf("failed to login user: %v", err)
+			return err
+		}
+
+		return c.WriteJson(http.StatusOK, response)
+	}
+}
+
+type RefreshTokenVars struct {
+	RefreshToken string `path:"refresh_token"`
+}
+
+func RefreshTokenHandler(userService user.Service) router.Handler {
+	return func(c router.Context) error {
+		var vars RefreshTokenVars
+		if err := c.Vars(&vars); err != nil {
+			return err
+		}
+
+		log := c.Log()
+		response, err := userService.RefreshToken(c.Ctx(), log, vars.RefreshToken)
+		if err != nil {
+			log.Errorf("failed to refresh token: %v", err)
+			return err
+		}
+
+		return c.WriteJson(http.StatusOK, response)
+	}
+}

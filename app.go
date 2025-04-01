@@ -7,10 +7,12 @@ import (
 	"time"
 	"tns-energo/api"
 	"tns-energo/config"
+	dbuser "tns-energo/database/user"
 	"tns-energo/lib/ctx"
 	"tns-energo/lib/db"
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/user"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -18,13 +20,19 @@ import (
 const _databaseTimeout = 15 * time.Second
 
 type App struct {
+	/* main */
 	mainCtx  context.Context
 	log      liblog.Logger
 	settings config.Settings
 
+	/* storage */
 	postgres *sqlx.DB
 
+	/* http */
 	server libserver.Server
+
+	/* services */
+	userService user.Service
 }
 
 func NewApp(mainCtx ctx.Context, log liblog.Logger, settings config.Settings) *App {
@@ -51,12 +59,17 @@ func (a *App) InitDatabases(fs fs.FS, migrationPath string) (err error) {
 }
 
 func (a *App) InitServices() (err error) {
+	userRepository := dbuser.NewRepository(a.postgres)
+
+	a.userService = user.NewService(userRepository)
+
 	return nil
 }
 
 func (a *App) InitServer() {
 	sb := api.NewServerBuilder(a.mainCtx, a.log, a.settings)
 	sb.AddDebug()
+	sb.AddUsers(a.userService)
 	a.server = sb.Build()
 }
 
