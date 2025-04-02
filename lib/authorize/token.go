@@ -51,7 +51,7 @@ func decode(token string) (Authorize, error) {
 	return auth, nil
 }
 
-func NewToken(userId int, email string, isAdmin bool, duration time.Duration, secret string) (string, error) {
+func NewAccessToken(userId int, email string, isAdmin bool, duration time.Duration, secret string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
@@ -69,8 +69,13 @@ func NewToken(userId int, email string, isAdmin bool, duration time.Duration, se
 	return tokenString, nil
 }
 
-func NewEmptyToken(secret string) (string, error) {
+func NewRefreshToken(duration time.Duration, secret string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
+
+	claims := token.Claims.(jwt.MapClaims)
+	claims["iat"] = time.Now().Unix()
+	claims["exp"] = time.Now().Add(duration).Unix()
+
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err

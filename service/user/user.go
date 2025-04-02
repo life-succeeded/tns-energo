@@ -36,7 +36,9 @@ func NewService(users user.Repository, settings config.Settings) *Impl {
 }
 
 func (s *Impl) Register(ctx libctx.Context, log liblog.Logger, request RegisterRequest) (AuthResponse, error) {
-	refreshToken, err := authorize.NewEmptyToken(s.settings.Auth.Secret)
+	tokenTTL := time.Duration(s.settings.Auth.TokenExpiresAfterHours) * time.Hour
+	exp := time.Now().Add(tokenTTL)
+	refreshToken, err := authorize.NewRefreshToken(tokenTTL, s.settings.Auth.Secret)
 	if err != nil {
 		return AuthResponse{}, fmt.Errorf("could not create refresh token: %w", err)
 	}
@@ -47,8 +49,6 @@ func (s *Impl) Register(ctx libctx.Context, log liblog.Logger, request RegisterR
 	}
 
 	passwordHash := string(rawPasswordHash)
-	tokenTTL := time.Duration(s.settings.Auth.TokenExpiresAfterHours) * time.Hour
-	exp := time.Now().Add(tokenTTL)
 
 	id, err := s.users.Create(ctx, user.User{
 		Email:                 request.Email,
@@ -65,7 +65,7 @@ func (s *Impl) Register(ctx libctx.Context, log liblog.Logger, request RegisterR
 		return AuthResponse{}, fmt.Errorf("could not create user: %w", err)
 	}
 
-	accessToken, err := authorize.NewToken(id, request.Email, false, tokenTTL, s.settings.Auth.Secret)
+	accessToken, err := authorize.NewAccessToken(id, request.Email, false, tokenTTL, s.settings.Auth.Secret)
 	if err != nil {
 		return AuthResponse{}, fmt.Errorf("could not create access token: %w", err)
 	}
@@ -83,7 +83,7 @@ func (s *Impl) Login(ctx libctx.Context, log liblog.Logger, request LoginRequest
 	}
 
 	tokenTTL := time.Duration(s.settings.Auth.TokenExpiresAfterHours) * time.Hour
-	accessToken, err := authorize.NewToken(dbUser.Id, dbUser.Email, isAdmin(dbUser.RoleId), tokenTTL, s.settings.Auth.Secret)
+	accessToken, err := authorize.NewAccessToken(dbUser.Id, dbUser.Email, isAdmin(dbUser.RoleId), tokenTTL, s.settings.Auth.Secret)
 	if err != nil {
 		return AuthResponse{}, fmt.Errorf("could not create access token: %w", err)
 	}
@@ -121,7 +121,7 @@ func (s *Impl) RefreshToken(ctx libctx.Context, log liblog.Logger, refreshToken 
 	}
 
 	tokenTTL := time.Duration(s.settings.Auth.TokenExpiresAfterHours) * time.Hour
-	newAccessToken, err := authorize.NewToken(dbUser.Id, dbUser.Email, isAdmin(dbUser.RoleId), tokenTTL, s.settings.Auth.Secret)
+	newAccessToken, err := authorize.NewAccessToken(dbUser.Id, dbUser.Email, isAdmin(dbUser.RoleId), tokenTTL, s.settings.Auth.Secret)
 	if err != nil {
 		return AuthResponse{}, fmt.Errorf("could not create access token: %w", err)
 	}
@@ -138,13 +138,14 @@ func (s *Impl) RefreshToken(ctx libctx.Context, log liblog.Logger, refreshToken 
 }
 
 func (s *Impl) updateToken(ctx libctx.Context, dbUser user.User) (string, error) {
-	newRefreshToken, err := authorize.NewEmptyToken(s.settings.Auth.Secret)
+	tokenTTL := time.Duration(s.settings.Auth.TokenExpiresAfterHours) * time.Hour
+	exp := time.Now().Add(tokenTTL)
+	newRefreshToken, err := authorize.NewRefreshToken(tokenTTL, s.settings.Auth.Secret)
 	if err != nil {
 		return "", fmt.Errorf("could not create refresh token: %w", err)
 	}
 
-	tokenTTL := time.Duration(s.settings.Auth.TokenExpiresAfterHours) * time.Hour
-	err = s.users.UpdateRefreshToken(ctx, dbUser.Id, newRefreshToken, time.Now().Add(tokenTTL))
+	err = s.users.UpdateRefreshToken(ctx, dbUser.Id, newRefreshToken, exp)
 	if err != nil {
 		return "", fmt.Errorf("could not update refresh token: %w", err)
 	}
