@@ -88,14 +88,21 @@ func (s *Impl) Login(ctx libctx.Context, log liblog.Logger, request LoginRequest
 		return AuthResponse{}, fmt.Errorf("could not create access token: %w", err)
 	}
 
-	refreshToken := ""
-	if dbUser.RefreshToken != nil {
-		refreshToken = *dbUser.RefreshToken
+	if dbUser.RefreshToken != nil && time.Now().Before(*dbUser.RefreshTokenExpiresAt) {
+		return AuthResponse{
+			AccessToken:  accessToken,
+			RefreshToken: *dbUser.RefreshToken,
+		}, nil
+	}
+
+	newRefreshToken, err := s.updateToken(ctx, dbUser)
+	if err != nil {
+		return AuthResponse{}, fmt.Errorf("could not update refresh token: %w", err)
 	}
 
 	return AuthResponse{
 		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		RefreshToken: newRefreshToken,
 	}, nil
 }
 
@@ -109,9 +116,8 @@ func (s *Impl) RefreshToken(ctx libctx.Context, log liblog.Logger, refreshToken 
 		return AuthResponse{}, fmt.Errorf("could not get user by refresh token: %w", err)
 	}
 
-	newRefreshToken, err := authorize.NewEmptyToken(s.settings.Auth.Secret)
-	if err != nil {
-		return AuthResponse{}, fmt.Errorf("could not create refresh token: %w", err)
+	if time.Now().After(*dbUser.RefreshTokenExpiresAt) {
+		return AuthResponse{}, fmt.Errorf("refresh token expired")
 	}
 
 	tokenTTL := time.Duration(s.settings.Auth.TokenExpiresAfterHours) * time.Hour
@@ -120,7 +126,7 @@ func (s *Impl) RefreshToken(ctx libctx.Context, log liblog.Logger, refreshToken 
 		return AuthResponse{}, fmt.Errorf("could not create access token: %w", err)
 	}
 
-	err = s.users.UpdateRefreshToken(ctx, dbUser.Id, newRefreshToken, time.Now().Add(tokenTTL))
+	newRefreshToken, err := s.updateToken(ctx, dbUser)
 	if err != nil {
 		return AuthResponse{}, fmt.Errorf("could not update refresh token: %w", err)
 	}
@@ -129,4 +135,19 @@ func (s *Impl) RefreshToken(ctx libctx.Context, log liblog.Logger, refreshToken 
 		AccessToken:  newAccessToken,
 		RefreshToken: newRefreshToken,
 	}, nil
+}
+
+func (s *Impl) updateToken(ctx libctx.Context, dbUser user.User) (string, error) {
+	newRefreshToken, err := authorize.NewEmptyToken(s.settings.Auth.Secret)
+	if err != nil {
+		return "", fmt.Errorf("could not create refresh token: %w", err)
+	}
+
+	tokenTTL := time.Duration(s.settings.Auth.TokenExpiresAfterHours) * time.Hour
+	err = s.users.UpdateRefreshToken(ctx, dbUser.Id, newRefreshToken, time.Now().Add(tokenTTL))
+	if err != nil {
+		return "", fmt.Errorf("could not update refresh token: %w", err)
+	}
+
+	return newRefreshToken, nil
 }
