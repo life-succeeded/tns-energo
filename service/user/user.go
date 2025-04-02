@@ -19,7 +19,8 @@ type Service interface {
 }
 
 const (
-	AdminRoleId = 1
+	InspectorRoleId = 1
+	AdminRoleId     = 2
 )
 
 type Impl struct {
@@ -58,7 +59,7 @@ func (s *Impl) Register(ctx libctx.Context, log liblog.Logger, request RegisterR
 		PasswordHash:          &passwordHash,
 		RefreshToken:          &refreshToken,
 		RefreshTokenExpiresAt: &exp,
-		RoleId:                0,
+		RoleId:                InspectorRoleId,
 	})
 	if err != nil {
 		return AuthResponse{}, fmt.Errorf("could not create user: %w", err)
