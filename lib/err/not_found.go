@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var (
@@ -34,8 +32,7 @@ func WrapNotFoundError(format string, err error) error {
 	case err == nil:
 		return nil
 
-	case errors.Is(err, sql.ErrNoRows),
-		errors.Is(err, mongo.ErrNoDocuments):
+	case errors.Is(err, sql.ErrNoRows):
 		return NewNotFoundError(fmt.Sprintf(format, err), err)
 
 	default:

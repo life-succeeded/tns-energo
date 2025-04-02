@@ -5,15 +5,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 )
 
 // NewPgx creates sqlx.DB instance with pgx driver
-func NewPgx(ctx context.Context, connectionString string, options ...Option) (*sqlx.DB, error) {
-	pool, err := NewPgxPool(ctx, connectionString, options...)
+func NewPgx(ctx context.Context, connectionString string) (*sqlx.DB, error) {
+	pool, err := NewPgxPool(ctx, connectionString)
 	if err != nil {
 		return nil, fmt.Errorf("can't create pgx pool: %w", err)
 	}
@@ -21,18 +20,13 @@ func NewPgx(ctx context.Context, connectionString string, options ...Option) (*s
 	return WrapPgxPool(ctx, pool)
 }
 
-func NewPgxPool(ctx context.Context, connectionString string, options ...Option) (*pgxpool.Pool, error) {
+func NewPgxPool(ctx context.Context, connectionString string) (*pgxpool.Pool, error) {
 	poolConfig, err := pgxpool.ParseConfig(connectionString)
 	if err != nil {
 		return nil, fmt.Errorf("can't parse connection string: %w", err)
 	}
 	if poolConfig == nil {
 		return nil, errors.New("parsed config is nil")
-	}
-
-	handler := applyOptions(options...)
-	if handler.traces {
-		poolConfig.ConnConfig.Tracer = otelpgx.NewTracer()
 	}
 
 	return pgxpool.NewWithConfig(ctx, poolConfig)

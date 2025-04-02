@@ -61,7 +61,7 @@ func (a *App) InitDatabases(fs fs.FS, migrationPath string) (err error) {
 func (a *App) InitServices() (err error) {
 	userRepository := dbuser.NewRepository(a.postgres)
 
-	a.userService = user.NewService(userRepository)
+	a.userService = user.NewService(userRepository, a.settings)
 
 	return nil
 }

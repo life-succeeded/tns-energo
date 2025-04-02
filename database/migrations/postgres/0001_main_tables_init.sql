@@ -5,6 +5,10 @@ create table if not exists roles
     name text not null
 );
 
+insert into roles (name)
+values ('Инспектор'),
+       ('Админ');
+
 create table if not exists users
 (
     id                       int primary key generated always as identity,

@@ -10,7 +10,6 @@ import (
 	liblog "tns-energo/lib/log"
 
 	"github.com/gorilla/mux"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type Context struct {
@@ -19,8 +18,6 @@ type Context struct {
 
 	ctx libctx.Context
 	log liblog.Logger
-
-	tracer trace.Tracer
 }
 
 func NewContext(log liblog.Logger, rs ResponseWriter, rq *http.Request) Context {
@@ -139,13 +136,6 @@ func (c Context) Request() *http.Request {
 
 func (c Context) Response() ResponseWriter {
 	return c.response
-}
-
-// Tracer возвращает trace.Tracer, ассоциированный с swrouter
-// ВАЖНО! Не стоит использовать этот трейсер для трассировки бизнес-логики, т. к. он ассоциирован именно с роутингом.
-// Для бизнес-логики используйте трейсеры, созданные в app.go
-func (c Context) Tracer() trace.Tracer {
-	return c.tracer
 }
 
 func (c Context) Close() error {
