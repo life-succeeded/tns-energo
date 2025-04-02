@@ -62,6 +62,7 @@ create table if not exists devices
     amperage             numeric(9, 2) not null,
     valency_before_dot   int           not null,
     valency_after_dot    int           not null,
+    manufacture_year     int           not null,
     verification_quarter int           not null,
     verification_year    int           not null,
     accuracy_class       text          not null,
