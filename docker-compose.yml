@@ -16,6 +16,11 @@ services:
         condition: service_healthy
     networks:
       - backend
+    healthcheck:
+      test: curl -X GET -f http://localhost:8080/health
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   postgres:
     image: postgres:latest
