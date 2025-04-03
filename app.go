@@ -89,6 +89,7 @@ func (a *App) InitServer() {
 	sb := api.NewServerBuilder(a.mainCtx, a.log, a.settings)
 	sb.AddDebug()
 	sb.AddUsers(a.userService)
+	sb.AddInspections(a.inspectionService)
 	a.server = sb.Build()
 }
 
