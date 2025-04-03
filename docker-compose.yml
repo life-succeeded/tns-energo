@@ -38,7 +38,7 @@ services:
   
   minio:
     container_name: minio
-    image: quay.io/minio/minio:latest
+    image: bitnami/minio:latest
     volumes:
       - minio_data:/data
     ports:
@@ -48,10 +48,10 @@ services:
       MINIO_ROOT_USER: "minioadmin"
       MINIO_ROOT_PASSWORD: "X8b3nTOBckRF"
     healthcheck:
-      test: [ "CMD", "mc", "ready", "local" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
 networks:
   backend:
