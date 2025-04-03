@@ -48,9 +48,9 @@ services:
     command: minio server --console-address ":9001" /data
     volumes:
       - minio_data:/data
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    expose:
+      - "9000"
+      - "9001"
     environment:
       MINIO_ROOT_USER: "minioadmin"
       MINIO_ROOT_PASSWORD: "X8b3nTOBckRF"
@@ -63,6 +63,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  
+  nginx:
+    image: nginx:latest
+    hostname: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    depends_on:
+      - minio
+    networks:
+      - backend
 
 networks:
   backend:
