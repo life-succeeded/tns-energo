@@ -3,6 +3,7 @@ package minio
 import (
 	"context"
 	"fmt"
+	"time"
 	libctx "tns-energo/lib/ctx"
 
 	"github.com/minio/minio-go/v7"
@@ -10,7 +11,7 @@ import (
 )
 
 type Client interface {
-	CreateOne(ctx libctx.Context, bucket string, file File) error
+	CreateOne(ctx libctx.Context, bucket string, file File) (string, error)
 }
 
 type Impl struct {
@@ -47,11 +48,16 @@ func NewClient(ctx context.Context, endpoint, user, password string, useSSL bool
 	}, nil
 }
 
-func (c *Impl) CreateOne(ctx libctx.Context, bucket string, file File) error {
+func (c *Impl) CreateOne(ctx libctx.Context, bucket string, file File) (string, error) {
 	_, err := c.mc.PutObject(ctx, bucket, file.Name, file.Data, int64(file.Data.Len()), minio.PutObjectOptions{})
 	if err != nil {
-		return fmt.Errorf("could not put file %s: %w", file.Name, err)
+		return "", fmt.Errorf("could not put file %s: %w", file.Name, err)
 	}
 
-	return nil
+	url, err := c.mc.PresignedGetObject(ctx, bucket, file.Name, 24*time.Hour, nil)
+	if err != nil {
+		return "", fmt.Errorf("could not get url for file %s: %w", file.Name, err)
+	}
+
+	return url.String(), nil
 }
