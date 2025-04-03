@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"tns-energo/config"
-	libconfig "tns-energo/lib/config"
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+var cachedSecret []byte
 
 type Authorize struct {
 	UserId  int    `json:"user_id"`
@@ -30,15 +30,9 @@ func Parse(token string) (auth Authorize, err error) {
 		return Authorize{}, errors.New("invalid token")
 	}
 
-	// TODO: убрать этот кринж
-	var settings config.Settings
-	if err := libconfig.Parse(&settings); err != nil {
-		return Authorize{}, fmt.Errorf("failed to parse config: %w", err)
-	}
-
 	claims := jwt.MapClaims{}
 	_, err = jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(settings.Auth.Secret), nil
+		return cachedSecret, nil
 	})
 	if err != nil {
 		return Authorize{}, fmt.Errorf("could not parse token: %w", err)
@@ -54,6 +48,7 @@ func Parse(token string) (auth Authorize, err error) {
 }
 
 func NewAccessToken(userId int, email string, isAdmin bool, duration time.Duration, secret string) (string, error) {
+	cachedSecret = []byte(secret)
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
@@ -63,7 +58,7 @@ func NewAccessToken(userId int, email string, isAdmin bool, duration time.Durati
 	claims["iat"] = time.Now().Unix()
 	claims["exp"] = time.Now().Add(duration).Unix()
 
-	tokenString, err := token.SignedString([]byte(secret))
+	tokenString, err := token.SignedString(cachedSecret)
 	if err != nil {
 		return "", err
 	}
@@ -72,13 +67,14 @@ func NewAccessToken(userId int, email string, isAdmin bool, duration time.Durati
 }
 
 func NewRefreshToken(duration time.Duration, secret string) (string, error) {
+	cachedSecret = []byte(secret)
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
 	claims["iat"] = time.Now().Unix()
 	claims["exp"] = time.Now().Add(duration).Unix()
 
-	tokenString, err := token.SignedString([]byte(secret))
+	tokenString, err := token.SignedString(cachedSecret)
 	if err != nil {
 		return "", err
 	}
