@@ -76,7 +76,7 @@ func (s *Impl) Inspect(ctx libctx.Context, log liblog.Logger) (string, error) {
 		"deployment_place":      "г. Пенза, ул. Ворошилова, д. 13, кв. 77",
 	}
 
-	doc, err := docx.Open("../templates/limitation.docx")
+	doc, err := docx.Open(s.settings.Templates.Limitation)
 	if err != nil {
 		return "", fmt.Errorf("could not open document: %w", err)
 	}
@@ -93,7 +93,7 @@ func (s *Impl) Inspect(ctx libctx.Context, log liblog.Logger) (string, error) {
 	}
 
 	url, err := s.minio.CreateOne(ctx, s.settings.Databases.Minio.DocumentsBucket, minio.File{
-		Name: uuid.New().String(),
+		Name: fmt.Sprintf("%s.docx", uuid.New().String()),
 		Data: buf,
 	})
 	if err != nil {

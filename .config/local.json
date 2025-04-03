@@ -14,5 +14,9 @@
   "auth": {
     "secret": "0cf84ae3410d3d89a043bfb7cd1935229a0e07712758dc82a15d3d302cece851f0f55895733dca3aee4487f73517e91ef0c6d5a7eb6c0d943fcecea2b5dce9832efad37f122c700e81ee06b067b353b29bf5a32546abfde65ecdd2438558414f2308d9fa256c3176f1cf3c6dd0a44d2476925e5cd37767347829add40c7e9e09d8cc1c67abd932377e09ac919a019665def39528f2c5fd57b6e7a70c074939e1c32d378b9c39203081477c4692c289bcd682d623f76e0029ef2f75901cc5177572cf55a156b2986958b54aad62a0eb42b35ed42195b9065d0f37f5dbe1b4077870c8a9eec7f8dd02da7ab89a277d873f87714fc3d71dc15d458387453dd1a029",
     "token_expires_after_hours": 72
+  },
+  "templates": {
+    "limitation": "./service/inspection/templates/limitation.docx",
+    "resumption": "./service/inspection/templates/resumption.docx"
   }
 }
