@@ -1,12 +1,13 @@
 package authorize
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
+	"tns-energo/config"
+	libconfig "tns-energo/lib/config"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -23,32 +24,33 @@ func GetToken(r *http.Request) string {
 	return r.Header.Get("Authorization")
 }
 
-func GetAuth(r *http.Request) (auth Authorize, err error) {
-	return Parse(GetToken(r))
-}
-
 func Parse(token string) (auth Authorize, err error) {
-	parts := strings.Split(token, ".")
-	if len(parts) < 2 {
-		return Authorize{}, errors.New("wrong authorization parts")
+	token, ok := strings.CutPrefix(token, "Bearer ")
+	if !ok {
+		return Authorize{}, errors.New("invalid token")
 	}
 
-	return decode(parts[1])
-}
+	// TODO: убрать этот кринж
+	var settings config.Settings
+	if err := libconfig.Parse(&settings); err != nil {
+		return Authorize{}, fmt.Errorf("failed to parse config: %w", err)
+	}
 
-func decode(token string) (Authorize, error) {
-	buf, err := base64.StdEncoding.DecodeString(token)
+	claims := jwt.MapClaims{}
+	_, err = jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(settings.Auth.Secret), nil
+	})
 	if err != nil {
-		return Authorize{}, err
+		return Authorize{}, fmt.Errorf("could not parse token: %w", err)
 	}
 
-	auth := Authorize{}
-	err = json.Unmarshal(buf, &auth)
-	if err != nil {
-		return Authorize{}, err
-	}
-
-	return auth, nil
+	return Authorize{
+		UserId:  int(claims["user_id"].(float64)),
+		Email:   claims["email"].(string),
+		IsAdmin: claims["is_admin"].(bool),
+		Iat:     int(claims["iat"].(float64)),
+		Exp:     int(claims["exp"].(float64)),
+	}, nil
 }
 
 func NewAccessToken(userId int, email string, isAdmin bool, duration time.Duration, secret string) (string, error) {
