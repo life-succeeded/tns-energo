@@ -2,7 +2,6 @@ services:
   tns-energo:
     container_name: backend
     image: tns-energo
-    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile
@@ -20,7 +19,6 @@ services:
 
   postgres:
     image: postgres:latest
-    restart: unless-stopped
     container_name: postgres
     volumes:
       - postgres_data:/var/lib/postgresql
@@ -33,27 +31,33 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5
   
   minio:
     container_name: minio
-    image: bitnami/minio:latest
+    hostname: minio
+    image: quay.io/minio/minio:latest
+    command: minio server --console-address ":9001" /data
     volumes:
       - minio_data:/data
     ports:
       - "9000:9000"
-    restart: unless-stopped
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: "minioadmin"
       MINIO_ROOT_PASSWORD: "X8b3nTOBckRF"
+      MINIO_ADDRESS: ":9000"
+      MINIO_CONSOLE_ADDRESS: ":9001"
+    networks:
+      - backend
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
-      interval: 30s
-      timeout: 20s
-      retries: 3
+      test: [ "CMD", "mc", "ready", "local" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 networks:
   backend:
