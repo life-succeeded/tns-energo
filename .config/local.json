@@ -8,7 +8,8 @@
       "documents_bucket": "documents",
       "user": "minioadmin",
       "password": "X8b3nTOBckRF",
-      "use_ssl": false
+      "use_ssl": false,
+      "host": "http://localhost:9000"
     }
   },
   "auth": {

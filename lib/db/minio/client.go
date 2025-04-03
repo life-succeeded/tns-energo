@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 	libctx "tns-energo/lib/ctx"
 
 	"github.com/minio/minio-go/v7"
@@ -16,10 +15,11 @@ type Client interface {
 }
 
 type Impl struct {
-	mc *minio.Client
+	mc   *minio.Client
+	host string
 }
 
-func NewClient(ctx context.Context, endpoint, user, password string, useSSL bool, buckets []string) (*Impl, error) {
+func NewClient(ctx context.Context, endpoint, user, password string, useSSL bool, buckets []string, host string) (*Impl, error) {
 	client, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(user, password, ""),
 		Secure: useSSL,
@@ -68,7 +68,8 @@ func NewClient(ctx context.Context, endpoint, user, password string, useSSL bool
 	}
 
 	return &Impl{
-		mc: client,
+		mc:   client,
+		host: host,
 	}, nil
 }
 
@@ -78,10 +79,7 @@ func (c *Impl) CreateOne(ctx libctx.Context, bucket string, file File) (string, 
 		return "", fmt.Errorf("could not put file %s: %w", file.Name, err)
 	}
 
-	url, err := c.mc.PresignedGetObject(ctx, bucket, file.Name, 24*time.Hour, nil)
-	if err != nil {
-		return "", fmt.Errorf("could not get url for file %s: %w", file.Name, err)
-	}
+	url := fmt.Sprintf("%s/%s/%s", c.host, bucket, file.Name)
 
-	return url.String(), nil
+	return url, nil
 }

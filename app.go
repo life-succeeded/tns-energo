@@ -69,6 +69,7 @@ func (a *App) InitDatabases(fs fs.FS, migrationPath string) (err error) {
 		a.settings.Databases.Minio.Password,
 		a.settings.Databases.Minio.UseSSL,
 		[]string{a.settings.Databases.Minio.ImagesBucket, a.settings.Databases.Minio.DocumentsBucket},
+		a.settings.Databases.Minio.Host,
 	); err != nil {
 		return fmt.Errorf("could not connect to minio: %w", err)
 	}

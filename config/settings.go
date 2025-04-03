@@ -19,6 +19,7 @@ type Minio struct {
 	User            string `json:"user"`
 	Password        string `json:"password"`
 	UseSSL          bool   `json:"use_ssl"`
+	Host            string `json:"host"`
 }
 
 type Auth struct {
