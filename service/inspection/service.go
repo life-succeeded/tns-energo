@@ -92,15 +92,16 @@ func (s *Impl) Inspect(ctx libctx.Context, log liblog.Logger) (string, error) {
 		return "", fmt.Errorf("could not write: %w", err)
 	}
 
-	url, err := s.minio.CreateOne(ctx, s.settings.Databases.Minio.DocumentsBucket, minio.File{
-		Name: fmt.Sprintf("%s.docx", uuid.New().String()),
+	fileName := fmt.Sprintf("%s.docx", uuid.New().String())
+	err = s.minio.CreateOne(ctx, s.settings.Databases.Minio.DocumentsBucket, minio.File{
+		Name: fileName,
 		Data: buf,
 	})
 	if err != nil {
 		return "", fmt.Errorf("could not create document in minio: %w", err)
 	}
 
-	return url, nil
+	return fileName, nil
 }
 
 func russianMonth(month time.Month) string {
