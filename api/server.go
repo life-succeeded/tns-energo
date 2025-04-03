@@ -11,6 +11,7 @@ import (
 	"tns-energo/lib/http/router/status"
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/inspection"
 	"tns-energo/service/user"
 )
 
@@ -37,6 +38,11 @@ func (s *ServerBuilder) AddUsers(userService user.Service) {
 	subRouter.HandlePost("/register", handlers.RegisterHandler(userService))
 	subRouter.HandlePost("/login", handlers.LoginHandler(userService))
 	subRouter.HandlePut("/refresh-token/{refresh_token}", handlers.RefreshTokenHandler(userService))
+}
+
+func (s *ServerBuilder) AddInspections(inspectionService inspection.Service) {
+	subRouter := s.router.SubRouter("/inspections")
+	subRouter.HandlePost("", handlers.InspectHandler(inspectionService)).Use(s.isAuthorized)
 }
 
 func (s *ServerBuilder) Build() libserver.Server {

@@ -8,6 +8,16 @@ type Settings struct {
 
 type Databases struct {
 	Postgres string `json:"postgres"`
+	Minio    Minio  `json:"minio"`
+}
+
+type Minio struct {
+	Endpoint        string `json:"endpoint"`
+	ImagesBucket    string `json:"images_bucket"`
+	DocumentsBucket string `json:"documents_bucket"`
+	User            string `json:"user"`
+	Password        string `json:"password"`
+	UseSSL          bool   `json:"use_ssl"`
 }
 
 type Auth struct {

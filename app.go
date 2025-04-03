@@ -10,8 +10,10 @@ import (
 	dbuser "tns-energo/database/user"
 	"tns-energo/lib/ctx"
 	"tns-energo/lib/db"
+	"tns-energo/lib/db/minio"
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/inspection"
 	"tns-energo/service/user"
 
 	"github.com/jmoiron/sqlx"
@@ -27,12 +29,14 @@ type App struct {
 
 	/* storage */
 	postgres *sqlx.DB
+	minio    minio.Client
 
 	/* http */
 	server libserver.Server
 
 	/* services */
-	userService user.Service
+	userService       user.Service
+	inspectionService inspection.Service
 }
 
 func NewApp(mainCtx ctx.Context, log liblog.Logger, settings config.Settings) *App {
@@ -55,6 +59,20 @@ func (a *App) InitDatabases(fs fs.FS, migrationPath string) (err error) {
 		return fmt.Errorf("could not migrate postgres: %w", err)
 	}
 
+	minioCtx, cancelMinioCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
+	defer cancelMinioCtx()
+
+	if a.minio, err = minio.NewClient(
+		minioCtx,
+		a.settings.Databases.Minio.Endpoint,
+		a.settings.Databases.Minio.User,
+		a.settings.Databases.Minio.Password,
+		a.settings.Databases.Minio.UseSSL,
+		[]string{a.settings.Databases.Minio.ImagesBucket, a.settings.Databases.Minio.ImagesBucket},
+	); err != nil {
+		return fmt.Errorf("could not connect to minio: %w", err)
+	}
+
 	return nil
 }
 
@@ -62,6 +80,7 @@ func (a *App) InitServices() (err error) {
 	userRepository := dbuser.NewRepository(a.postgres)
 
 	a.userService = user.NewService(userRepository, a.settings)
+	a.inspectionService = inspection.NewService(a.minio, a.settings)
 
 	return nil
 }

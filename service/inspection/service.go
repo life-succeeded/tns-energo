@@ -1,28 +1,37 @@
 package inspection
 
 import (
+	"bytes"
 	"fmt"
 	"time"
+	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
+	"tns-energo/lib/db/minio"
 	liblog "tns-energo/lib/log"
 
+	"github.com/google/uuid"
 	"github.com/lukasjarosch/go-docx"
 	"github.com/shopspring/decimal"
 )
 
 type Service interface {
-	Inspect(ctx libctx.Context, log liblog.Logger) error
+	Inspect(ctx libctx.Context, log liblog.Logger) (string, error)
 	ParseExcelRegistry(ctx libctx.Context, log liblog.Logger) error
 }
 
 type Impl struct {
+	minio    minio.Client
+	settings config.Settings
 }
 
-func NewService() *Impl {
-	return &Impl{}
+func NewService(minio minio.Client, settings config.Settings) *Impl {
+	return &Impl{
+		minio:    minio,
+		settings: settings,
+	}
 }
 
-func (s *Impl) Inspect(ctx libctx.Context, log liblog.Logger) error {
+func (s *Impl) Inspect(ctx libctx.Context, log liblog.Logger) (string, error) {
 	now := time.Now()
 
 	replaceMap := docx.PlaceholderMap{
@@ -69,20 +78,29 @@ func (s *Impl) Inspect(ctx libctx.Context, log liblog.Logger) error {
 
 	doc, err := docx.Open("../templates/limitation.docx")
 	if err != nil {
-		return fmt.Errorf("could not open document: %w", err)
+		return "", fmt.Errorf("could not open document: %w", err)
 	}
 
 	err = doc.ReplaceAll(replaceMap)
 	if err != nil {
-		return fmt.Errorf("could not replace: %w", err)
+		return "", fmt.Errorf("could not replace: %w", err)
 	}
 
-	err = doc.WriteToFile("../templates/replaced.docx")
+	buf := &bytes.Buffer{}
+	err = doc.Write(buf)
 	if err != nil {
-		return fmt.Errorf("could not write: %w", err)
+		return "", fmt.Errorf("could not write: %w", err)
 	}
 
-	return nil
+	url, err := s.minio.CreateOne(ctx, s.settings.Databases.Minio.DocumentsBucket, minio.File{
+		Name: uuid.New().String(),
+		Data: buf,
+	})
+	if err != nil {
+		return "", fmt.Errorf("could not create document in minio: %w", err)
+	}
+
+	return url, nil
 }
 
 func russianMonth(month time.Month) string {

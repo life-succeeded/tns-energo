@@ -1,5 +1,6 @@
 services:
   tns-energo:
+    container_name: backend
     image: tns-energo
     restart: unless-stopped
     build:
@@ -12,14 +13,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     networks:
       - backend
 
   postgres:
-    image: postgres
+    image: postgres:latest
     restart: unless-stopped
+    container_name: postgres
     volumes:
-      - db-data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql
     environment:
       POSTGRES_DB: "tns-energo"
       POSTGRES_USER: "postgres"
@@ -33,10 +37,28 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  
+  minio:
+    container_name: minio
+    image: bitnami/minio:latest
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "X8b3nTOBckRF"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
 networks:
   backend:
     driver: bridge
 
 volumes:
-  db-data:
+  postgres_data:
+  minio_data:
