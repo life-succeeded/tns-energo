@@ -2,6 +2,7 @@ package minio
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 	libctx "tns-energo/lib/ctx"
@@ -40,6 +41,29 @@ func NewClient(ctx context.Context, endpoint, user, password string, useSSL bool
 		err = client.MakeBucket(ctx, bucket, minio.MakeBucketOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("could not create bucket %s: %w", bucket, err)
+		}
+
+		policy := Policy{
+			Version: "2012-10-17",
+			Statement: []Statement{
+				{
+					Effect: "Allow",
+					Principal: Principal{
+						AWS: []string{"*"},
+					},
+					Action:   []string{"s3:GetObject"},
+					Resource: []string{fmt.Sprintf("arn:aws:s3:::%s/*", bucket)},
+				},
+			},
+		}
+		jsonPolicy, err := json.Marshal(policy)
+		if err != nil {
+			return nil, fmt.Errorf("could not marshal policy: %w", err)
+		}
+
+		err = client.SetBucketPolicy(ctx, bucket, string(jsonPolicy))
+		if err != nil {
+			return nil, fmt.Errorf("could not set bucket policy: %w", err)
 		}
 	}
 
