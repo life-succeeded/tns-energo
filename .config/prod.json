@@ -1,7 +1,15 @@
 {
   "port": 8080,
   "databases": {
-    "postgres": "postgres://postgres:sk8McoXvG7Cs@postgres/tns-energo"
+    "postgres": "postgres://postgres:sk8McoXvG7Cs@postgres/tns-energo",
+    "minio": {
+      "endpoint": "localhost:9000",
+      "images_bucket": "images",
+      "documents_bucket": "documents",
+      "user": "minioadmin",
+      "password": "X8b3nTOBckRF",
+      "use_ssl": true
+    }
   },
   "auth": {
     "secret": "8c7878cbd8db50f4d36988dabfaa84bd3442d107d4f80bfb4c447432f674569ff19edc0515ccee645dc5eccf27b19a9fe2a2b86ccaad0d7b43e958b04a03ff437230c4aefe23a8e791679eaee80a3d077ff7202560a08e1e82939c43c0f607ba73ca5d1902189e10d5c6a1a8964004335a07fd9259361b100a9f8caa8383de29811bedfc638cffbb9231d806fd38b599e418779751b7ba59a5e9e0efa0d45a7e04f90e5e4d05fb68aa51e5e7c79a84e95d8d19f885416dcf52d59bab46cb1408d982418a043a3d9ae19e4f0817229f847e14d5a97148200a048a9a1fb7989b37c1221d74e323cb8be43afbd02d40641b9ce8f538f1d456c806b564fd0aef48e8",
