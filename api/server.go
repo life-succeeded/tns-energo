@@ -43,6 +43,7 @@ func (s *ServerBuilder) AddUsers(userService user.Service) {
 func (s *ServerBuilder) AddInspections(inspectionService inspection.Service) {
 	subRouter := s.router.SubRouter("/inspections")
 	subRouter.HandlePost("", handlers.InspectHandler(inspectionService))
+	subRouter.HandlePost("/registry", handlers.RegistryHandler(inspectionService))
 }
 
 func (s *ServerBuilder) Build() libserver.Server {

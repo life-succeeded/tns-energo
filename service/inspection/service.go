@@ -12,11 +12,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/lukasjarosch/go-docx"
 	"github.com/shopspring/decimal"
+	"github.com/xuri/excelize/v2"
 )
 
 type Service interface {
 	Inspect(ctx libctx.Context, log liblog.Logger) (string, error)
-	ParseExcelRegistry(ctx libctx.Context, log liblog.Logger) error
+	ParseExcelRegistry(ctx libctx.Context, log liblog.Logger, fileBytes []byte) error
 }
 
 type Impl struct {
@@ -131,7 +132,33 @@ func russianMonth(month time.Month) string {
 	return ""
 }
 
-func (s *Impl) ParseExcelRegistry(ctx libctx.Context, log liblog.Logger) error {
-	//TODO implement me
-	panic("implement me")
+func (s *Impl) ParseExcelRegistry(ctx libctx.Context, log liblog.Logger, fileBytes []byte) error {
+	file, err := excelize.OpenReader(bytes.NewReader(fileBytes))
+	if err != nil {
+		return fmt.Errorf("could not open file: %w", err)
+	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Errorf("failed to close file: %v", err)
+		}
+	}()
+
+	for index, name := range file.GetSheetMap() {
+		log.Debugf("index: %d, name: %s", index, name)
+		rows, err := file.GetRows(name)
+		if err != nil {
+			return fmt.Errorf("could not get rows: %w", err)
+		}
+
+		for _, row := range rows {
+			cols := make([]string, 0, len(row))
+			for _, colCell := range row {
+				cols = append(cols, colCell)
+			}
+
+			log.Debugf("cols: %v", cols)
+		}
+	}
+
+	return nil
 }
