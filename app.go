@@ -17,6 +17,7 @@ import (
 	"tns-energo/service/user"
 
 	"github.com/jmoiron/sqlx"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const _databaseTimeout = 15 * time.Second
@@ -29,6 +30,7 @@ type App struct {
 
 	/* storage */
 	postgres *sqlx.DB
+	mongo    *mongo.Client
 	minio    minio.Client
 
 	/* http */
@@ -57,6 +59,13 @@ func (a *App) InitDatabases(fs fs.FS, migrationPath string) (err error) {
 
 	if err = db.Migrate(fs, a.log, a.postgres, migrationPath); err != nil {
 		return fmt.Errorf("could not migrate postgres: %w", err)
+	}
+
+	mongoCtx, cancelMongoCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
+	defer cancelMongoCtx()
+
+	if a.mongo, err = db.NewMongo(mongoCtx, a.settings.Databases.Mongo); err != nil {
+		return fmt.Errorf("could not connect to mongodb: %w", err)
 	}
 
 	minioCtx, cancelMinioCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
@@ -103,5 +112,12 @@ func (a *App) Stop(ctx context.Context) {
 
 	if err := a.postgres.Close(); err != nil {
 		a.log.Errorf("could not close postgres connection: %v", err)
+	}
+
+	mongoCtx, cancelMongoCtx := context.WithTimeout(ctx, _databaseTimeout)
+	defer cancelMongoCtx()
+
+	if err := a.mongo.Disconnect(mongoCtx); err != nil {
+		a.log.Errorf("could not close mongodb connection: %v", err)
 	}
 }

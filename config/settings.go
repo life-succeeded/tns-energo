@@ -9,6 +9,7 @@ type Settings struct {
 
 type Databases struct {
 	Postgres string `json:"postgres"`
+	Mongo    string `json:"mongo"`
 	Minio    Minio  `json:"minio"`
 }
 

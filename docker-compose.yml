@@ -1,7 +1,8 @@
 services:
   tns-energo:
+    image: tns-energo:latest
+    restart: unless-stopped
     container_name: backend
-    image: tns-energo
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,6 +12,8 @@ services:
       - "8080:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      mongo:
         condition: service_healthy
       minio:
         condition: service_healthy
@@ -24,13 +27,14 @@ services:
 
   postgres:
     image: postgres:latest
+    restart: unless-stopped
     container_name: postgres
     volumes:
       - postgres_data:/var/lib/postgresql
     environment:
-      POSTGRES_DB: "tns-energo"
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "sk8McoXvG7Cs"
+      POSTGRES_DB: tns-energo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: sk8McoXvG7Cs
     ports:
       - "5433:5432"
     networks:
@@ -41,8 +45,28 @@ services:
       timeout: 5s
       retries: 5
   
+  mongo:
+    image: mongo:latest
+    restart: unless-stopped
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongoroot
+      MONGO_INITDB_ROOT_PASSWORD: sB7RZMlOWmCov7jSsvrZ
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
   minio:
     image: minio/minio:latest
+    restart: unless-stopped
     container_name: minio
     command: server --console-address ":9001" /data/
     ports:
@@ -63,6 +87,7 @@ services:
   
   nginx:
     image: nginx:latest
+    restart: unless-stopped
     tty: true
     container_name: nginx
     volumes:
@@ -74,6 +99,11 @@ services:
       - tns-energo
     networks:
       - backend
+    healthcheck:
+      test: service nginx status || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 networks:
   backend:
@@ -81,4 +111,5 @@ networks:
 
 volumes:
   postgres_data:
+  mongo_data:
   minio_data:

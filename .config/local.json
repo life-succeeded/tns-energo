@@ -1,7 +1,8 @@
 {
   "port": 8080,
   "databases": {
-    "postgres": "postgres://postgres:sk8McoXvG7Cs@localhost/tns-energo",
+    "postgres": "postgres://localhost:sk8McoXvG7Cs@localhost/tns-energo",
+    "mongo": "mongodb://mongo:27017/?connect=direct",
     "minio": {
       "endpoint": "localhost:9000",
       "images_bucket": "images",
