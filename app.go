@@ -8,6 +8,7 @@ import (
 	"tns-energo/api"
 	"tns-energo/config"
 	"tns-energo/database/document"
+	dbinspection "tns-energo/database/inspection"
 	dbuser "tns-energo/database/user"
 	"tns-energo/lib/ctx"
 	"tns-energo/lib/db"
@@ -91,8 +92,10 @@ func (a *App) InitServices() (err error) {
 		return fmt.Errorf("could not create document repository: %w", err)
 	}
 
+	inspectionRepository := dbinspection.NewRepository(a.mongo, a.settings.Inspections.Database, a.settings.Inspections.Collection)
+
 	a.userService = user.NewService(userRepository, a.settings)
-	a.inspectionService = inspection.NewService(a.settings, documentRepository)
+	a.inspectionService = inspection.NewService(a.settings, documentRepository, inspectionRepository)
 
 	return nil
 }

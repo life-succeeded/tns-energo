@@ -11,9 +11,8 @@ import (
 )
 
 type Minio struct {
-	mc     *minio.Client
-	bucket string
-	host   string
+	mc           *minio.Client
+	bucket, host string
 }
 
 func NewRepository(ctx context.Context, mc *minio.Client, bucket, host string) (Minio, error) {

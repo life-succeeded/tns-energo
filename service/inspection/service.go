@@ -3,9 +3,11 @@ package inspection
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"time"
 	"tns-energo/config"
 	"tns-energo/database/document"
+	"tns-energo/database/inspection"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 
@@ -21,14 +23,16 @@ type Service interface {
 }
 
 type Impl struct {
-	settings  config.Settings
-	documents document.Repository
+	settings    config.Settings
+	documents   document.Repository
+	inspections inspection.Repository
 }
 
-func NewService(settings config.Settings, documents document.Repository) *Impl {
+func NewService(settings config.Settings, documents document.Repository, inspections inspection.Repository) *Impl {
 	return &Impl{
-		settings:  settings,
-		documents: documents,
+		settings:    settings,
+		documents:   documents,
+		inspections: inspections,
 	}
 }
 
@@ -143,21 +147,37 @@ func (s *Impl) ParseExcelRegistry(ctx libctx.Context, log liblog.Logger, fileByt
 		}
 	}()
 
-	for index, name := range file.GetSheetMap() {
-		log.Debugf("index: %d, name: %s", index, name)
-		rows, err := file.GetRows(name)
+	sheet := file.GetSheetName(0)
+	rows, err := file.GetRows(sheet)
+	if err != nil {
+		return fmt.Errorf("could not get rows: %w", err)
+	}
+
+	inspections := make([]inspection.Inspection, 0, len(rows)-1)
+	for _, row := range rows[1:] {
+		if len(row) != 5 {
+			log.Errorf("invalid row length: %d", len(row))
+			continue
+		}
+
+		tariffsCount, err := strconv.Atoi(row[4])
 		if err != nil {
-			return fmt.Errorf("could not get rows: %w", err)
+			log.Errorf("could not convert tariffs count: %w", err)
+			continue
 		}
 
-		for _, row := range rows {
-			cols := make([]string, 0, len(row))
-			for _, colCell := range row {
-				cols = append(cols, colCell)
-			}
+		inspections = append(inspections, inspection.Inspection{
+			Surname:      row[0],
+			Name:         row[1],
+			Patronymic:   row[2],
+			Position:     row[3],
+			TariffsCount: tariffsCount,
+		})
+	}
 
-			log.Debugf("cols: %v", cols)
-		}
+	err = s.inspections.CreateMany(ctx, inspections)
+	if err != nil {
+		return fmt.Errorf("could not create inspections: %w", err)
 	}
 
 	return nil

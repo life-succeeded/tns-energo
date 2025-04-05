@@ -2,7 +2,7 @@
   "port": 8080,
   "databases": {
     "postgres": "postgres://postgres:sk8McoXvG7Cs@postgres/tns-energo",
-    "mongo": "mongodb://mongo:27017/?connect=direct",
+    "mongo": "mongodb://mongoroot:sB7RZMlOWmCov7jSsvrZ@mongo:27017/?connect=direct",
     "minio": {
       "endpoint": "minio:9000",
       "images_bucket": "images",
@@ -20,5 +20,9 @@
   "templates": {
     "limitation": "./service/inspection/templates/limitation.docx",
     "resumption": "./service/inspection/templates/resumption.docx"
+  },
+  "inspections": {
+    "database": "tns-energo",
+    "collection": "inspections"
   }
 }
