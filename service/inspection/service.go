@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 	"tns-energo/config"
+	"tns-energo/database/document"
 	libctx "tns-energo/lib/ctx"
-	"tns-energo/lib/db/minio"
 	liblog "tns-energo/lib/log"
 
 	"github.com/google/uuid"
@@ -20,14 +20,14 @@ type Service interface {
 }
 
 type Impl struct {
-	minio    minio.Client
-	settings config.Settings
+	settings  config.Settings
+	documents document.Repository
 }
 
-func NewService(minio minio.Client, settings config.Settings) *Impl {
+func NewService(settings config.Settings, documents document.Repository) *Impl {
 	return &Impl{
-		minio:    minio,
-		settings: settings,
+		settings:  settings,
+		documents: documents,
 	}
 }
 
@@ -92,12 +92,9 @@ func (s *Impl) Inspect(ctx libctx.Context, log liblog.Logger) (string, error) {
 		return "", fmt.Errorf("could not write: %w", err)
 	}
 
-	url, err := s.minio.CreateOne(ctx, s.settings.Databases.Minio.DocumentsBucket, minio.File{
-		Name: fmt.Sprintf("%s.docx", uuid.New().String()),
-		Data: buf,
-	})
+	url, err := s.documents.Create(ctx, fmt.Sprintf("%s.docx", uuid.New()), buf, int64(buf.Len()))
 	if err != nil {
-		return "", fmt.Errorf("could not create document in minio: %w", err)
+		return "", fmt.Errorf("could not create document: %w", err)
 	}
 
 	return url, nil

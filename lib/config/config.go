@@ -37,6 +37,8 @@ func configProfile(env string) string {
 	switch env {
 	case "prod":
 		return "prod"
+	case "dev":
+		return "dev"
 	default:
 		return "local"
 	}

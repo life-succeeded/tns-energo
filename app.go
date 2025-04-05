@@ -7,16 +7,18 @@ import (
 	"time"
 	"tns-energo/api"
 	"tns-energo/config"
+	"tns-energo/database/document"
 	dbuser "tns-energo/database/user"
 	"tns-energo/lib/ctx"
 	"tns-energo/lib/db"
-	"tns-energo/lib/db/minio"
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/inspection"
 	"tns-energo/service/user"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -31,7 +33,7 @@ type App struct {
 	/* storage */
 	postgres *sqlx.DB
 	mongo    *mongo.Client
-	minio    minio.Client
+	minio    *minio.Client
 
 	/* http */
 	server libserver.Server
@@ -68,18 +70,10 @@ func (a *App) InitDatabases(fs fs.FS, migrationPath string) (err error) {
 		return fmt.Errorf("could not connect to mongodb: %w", err)
 	}
 
-	minioCtx, cancelMinioCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
-	defer cancelMinioCtx()
-
-	if a.minio, err = minio.NewClient(
-		minioCtx,
-		a.settings.Databases.Minio.Endpoint,
-		a.settings.Databases.Minio.User,
-		a.settings.Databases.Minio.Password,
-		a.settings.Databases.Minio.UseSSL,
-		[]string{a.settings.Databases.Minio.ImagesBucket, a.settings.Databases.Minio.DocumentsBucket},
-		a.settings.Databases.Minio.Host,
-	); err != nil {
+	if a.minio, err = minio.New(a.settings.Databases.Minio.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(a.settings.Databases.Minio.User, a.settings.Databases.Minio.Password, ""),
+		Secure: a.settings.Databases.Minio.UseSSL,
+	}); err != nil {
 		return fmt.Errorf("could not connect to minio: %w", err)
 	}
 
@@ -89,8 +83,16 @@ func (a *App) InitDatabases(fs fs.FS, migrationPath string) (err error) {
 func (a *App) InitServices() (err error) {
 	userRepository := dbuser.NewRepository(a.postgres)
 
+	documentCtx, cancelDocumentCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
+	defer cancelDocumentCtx()
+
+	documentRepository, err := document.NewRepository(documentCtx, a.minio, a.settings.Databases.Minio.DocumentsBucket, a.settings.Databases.Minio.Host)
+	if err != nil {
+		return fmt.Errorf("could not create document repository: %w", err)
+	}
+
 	a.userService = user.NewService(userRepository, a.settings)
-	a.inspectionService = inspection.NewService(a.minio, a.settings)
+	a.inspectionService = inspection.NewService(a.settings, documentRepository)
 
 	return nil
 }
