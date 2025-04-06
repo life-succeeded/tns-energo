@@ -50,3 +50,23 @@ func GetItemByAccountNumberHandler(registryService registry.Service) router.Hand
 		return c.WriteJson(http.StatusOK, item)
 	}
 }
+
+func GetItemByAccountNumberRegularHandler(registryService registry.Service) router.Handler {
+	return func(c router.Context) error {
+		log := c.Log()
+
+		var vars GetItemByAccountNumberVars
+		if err := c.Vars(&vars); err != nil {
+			log.Errorf("failed to read vars: %v", err)
+			return err
+		}
+
+		items, err := registryService.GetItemByAccountNumberRegular(c.Ctx(), log, vars.AccountNumber)
+		if err != nil {
+			log.Errorf("failed to get item by account number: %v", err)
+			return err
+		}
+
+		return c.WriteJson(http.StatusOK, items)
+	}
+}

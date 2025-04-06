@@ -50,6 +50,7 @@ func (s *ServerBuilder) AddRegistry(registryService registry.Service) {
 	subRouter := s.router.SubRouter("/registry")
 	subRouter.HandlePost("/parse", handlers.ParseRegistryHandler(registryService))
 	subRouter.HandleGet("/item/by-account-number/{account_number}", handlers.GetItemByAccountNumberHandler(registryService))
+	subRouter.HandleGet("/item/by-account-number/{account_number}/regular", handlers.GetItemByAccountNumberRegularHandler(registryService))
 }
 
 func (s *ServerBuilder) Build() libserver.Server {

@@ -15,6 +15,7 @@ import (
 type Service interface {
 	Parse(ctx libctx.Context, log liblog.Logger, fileBytes []byte) error
 	GetItemByAccountNumber(ctx libctx.Context, log liblog.Logger, accountNumber string) (Item, error)
+	GetItemByAccountNumberRegular(ctx libctx.Context, log liblog.Logger, accountNumber string) ([]Item, error)
 }
 
 type Impl struct {
@@ -91,4 +92,18 @@ func (s *Impl) GetItemByAccountNumber(ctx libctx.Context, log liblog.Logger, acc
 		Object:        item.Object,
 		HaveAutomaton: item.HaveAutomaton,
 	}, nil
+}
+
+func (s *Impl) GetItemByAccountNumberRegular(ctx libctx.Context, log liblog.Logger, accountNumber string) ([]Item, error) {
+	dbItems, err := s.registry.GetByAccountNumberRegular(ctx, log, accountNumber)
+	if err != nil {
+		return nil, fmt.Errorf("could not get item by account number: %w", err)
+	}
+
+	items := make([]Item, 0, len(dbItems))
+	for _, dbItem := range dbItems {
+		items = append(items, MapToDomain(dbItem))
+	}
+
+	return items, nil
 }
