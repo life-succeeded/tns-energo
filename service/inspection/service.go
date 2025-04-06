@@ -3,36 +3,33 @@ package inspection
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"time"
 	"tns-energo/config"
 	"tns-energo/database/document"
-	"tns-energo/database/inspection"
+	"tns-energo/database/registry"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 
 	"github.com/google/uuid"
 	"github.com/lukasjarosch/go-docx"
 	"github.com/shopspring/decimal"
-	"github.com/xuri/excelize/v2"
 )
 
 type Service interface {
 	Inspect(ctx libctx.Context, log liblog.Logger) (string, error)
-	ParseExcelRegistry(ctx libctx.Context, log liblog.Logger, fileBytes []byte) error
 }
 
 type Impl struct {
-	settings    config.Settings
-	documents   document.Repository
-	inspections inspection.Repository
+	settings  config.Settings
+	documents document.Repository
+	registry  registry.Repository
 }
 
-func NewService(settings config.Settings, documents document.Repository, inspections inspection.Repository) *Impl {
+func NewService(settings config.Settings, documents document.Repository, registry registry.Repository) *Impl {
 	return &Impl{
-		settings:    settings,
-		documents:   documents,
-		inspections: inspections,
+		settings:  settings,
+		documents: documents,
+		registry:  registry,
 	}
 }
 
@@ -134,51 +131,4 @@ func russianMonth(month time.Month) string {
 	}
 
 	return ""
-}
-
-func (s *Impl) ParseExcelRegistry(ctx libctx.Context, log liblog.Logger, fileBytes []byte) error {
-	file, err := excelize.OpenReader(bytes.NewReader(fileBytes))
-	if err != nil {
-		return fmt.Errorf("could not open file: %w", err)
-	}
-	defer func() {
-		if err := file.Close(); err != nil {
-			log.Errorf("failed to close file: %v", err)
-		}
-	}()
-
-	sheet := file.GetSheetName(0)
-	rows, err := file.GetRows(sheet)
-	if err != nil {
-		return fmt.Errorf("could not get rows: %w", err)
-	}
-
-	inspections := make([]inspection.Inspection, 0, len(rows)-1)
-	for _, row := range rows[1:] {
-		if len(row) != 5 {
-			log.Errorf("invalid row length: %d", len(row))
-			continue
-		}
-
-		tariffsCount, err := strconv.Atoi(row[4])
-		if err != nil {
-			log.Errorf("could not convert tariffs count: %w", err)
-			continue
-		}
-
-		inspections = append(inspections, inspection.Inspection{
-			Surname:      row[0],
-			Name:         row[1],
-			Patronymic:   row[2],
-			Position:     row[3],
-			TariffsCount: tariffsCount,
-		})
-	}
-
-	err = s.inspections.CreateMany(ctx, inspections)
-	if err != nil {
-		return fmt.Errorf("could not create inspections: %w", err)
-	}
-
-	return nil
 }

@@ -12,6 +12,7 @@ import (
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/inspection"
+	"tns-energo/service/registry"
 	"tns-energo/service/user"
 )
 
@@ -43,7 +44,12 @@ func (s *ServerBuilder) AddUsers(userService user.Service) {
 func (s *ServerBuilder) AddInspections(inspectionService inspection.Service) {
 	subRouter := s.router.SubRouter("/inspections")
 	subRouter.HandlePost("", handlers.InspectHandler(inspectionService))
-	subRouter.HandlePost("/registry", handlers.RegistryHandler(inspectionService))
+}
+
+func (s *ServerBuilder) AddRegistry(registryService registry.Service) {
+	subRouter := s.router.SubRouter("/registry")
+	subRouter.HandlePost("/parse", handlers.ParseRegistryHandler(registryService))
+	subRouter.HandleGet("/item/by-account-number/{account_number}", handlers.GetItemByAccountNumberHandler(registryService))
 }
 
 func (s *ServerBuilder) Build() libserver.Server {

@@ -1,8 +1,9 @@
-package inspection
+package registry
 
 import (
 	libctx "tns-energo/lib/ctx"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -19,18 +20,18 @@ func NewRepository(cli *mongo.Client, database, collection string) *Mongo {
 	}
 }
 
-func (r *Mongo) CreateOne(ctx libctx.Context, inspection Inspection) error {
+func (r *Mongo) AddOne(ctx libctx.Context, item Item) error {
 	_, err := r.cli.
 		Database(r.database).
 		Collection(r.collection).
-		InsertOne(ctx, inspection)
+		InsertOne(ctx, item)
 
 	return err
 }
 
-func (r *Mongo) CreateMany(ctx libctx.Context, inspections []Inspection) error {
-	docs := make([]interface{}, 0, len(inspections))
-	for _, inspection := range inspections {
+func (r *Mongo) AddMany(ctx libctx.Context, items []Item) error {
+	docs := make([]interface{}, 0, len(items))
+	for _, inspection := range items {
 		docs = append(docs, inspection)
 	}
 
@@ -40,4 +41,15 @@ func (r *Mongo) CreateMany(ctx libctx.Context, inspections []Inspection) error {
 		InsertMany(ctx, docs)
 
 	return err
+}
+
+func (r *Mongo) GetByAccountNumber(ctx libctx.Context, accountNumber string) (Item, error) {
+	var item Item
+	err := r.cli.
+		Database(r.database).
+		Collection(r.collection).
+		FindOne(ctx, bson.M{"account_number": accountNumber}).
+		Decode(&item)
+
+	return item, err
 }

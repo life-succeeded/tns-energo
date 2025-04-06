@@ -1,11 +1,11 @@
 package config
 
 type Settings struct {
-	Port        int         `json:"port"`
-	Databases   Databases   `json:"databases"`
-	Auth        Auth        `json:"auth"`
-	Templates   Templates   `json:"templates"`
-	Inspections Inspections `json:"inspections"`
+	Port      int       `json:"port"`
+	Databases Databases `json:"databases"`
+	Auth      Auth      `json:"auth"`
+	Templates Templates `json:"templates"`
+	Registry  Registry  `json:"registry"`
 }
 
 type Databases struct {
@@ -34,7 +34,7 @@ type Templates struct {
 	Resumption string `json:"resumption"`
 }
 
-type Inspections struct {
+type Registry struct {
 	Database   string `json:"database"`
 	Collection string `json:"collection"`
 }

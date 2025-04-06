@@ -21,8 +21,8 @@
     "limitation": "./service/inspection/templates/limitation.docx",
     "resumption": "./service/inspection/templates/resumption.docx"
   },
-  "inspections": {
+  "registry": {
     "database": "tns-energo",
-    "collection": "inspections"
+    "collection": "registry"
   }
 }

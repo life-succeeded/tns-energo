@@ -8,13 +8,14 @@ import (
 	"tns-energo/api"
 	"tns-energo/config"
 	"tns-energo/database/document"
-	dbinspection "tns-energo/database/inspection"
+	dbregistry "tns-energo/database/registry"
 	dbuser "tns-energo/database/user"
 	"tns-energo/lib/ctx"
 	"tns-energo/lib/db"
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/inspection"
+	"tns-energo/service/registry"
 	"tns-energo/service/user"
 
 	"github.com/jmoiron/sqlx"
@@ -42,6 +43,7 @@ type App struct {
 	/* services */
 	userService       user.Service
 	inspectionService inspection.Service
+	registryService   registry.Service
 }
 
 func NewApp(mainCtx ctx.Context, log liblog.Logger, settings config.Settings) *App {
@@ -92,10 +94,11 @@ func (a *App) InitServices() (err error) {
 		return fmt.Errorf("could not create document repository: %w", err)
 	}
 
-	inspectionRepository := dbinspection.NewRepository(a.mongo, a.settings.Inspections.Database, a.settings.Inspections.Collection)
+	registryRepository := dbregistry.NewRepository(a.mongo, a.settings.Registry.Database, a.settings.Registry.Collection)
 
 	a.userService = user.NewService(userRepository, a.settings)
-	a.inspectionService = inspection.NewService(a.settings, documentRepository, inspectionRepository)
+	a.inspectionService = inspection.NewService(a.settings, documentRepository, registryRepository)
+	a.registryService = registry.NewService(a.settings, registryRepository)
 
 	return nil
 }
@@ -105,6 +108,7 @@ func (a *App) InitServer() {
 	sb.AddDebug()
 	sb.AddUsers(a.userService)
 	sb.AddInspections(a.inspectionService)
+	sb.AddRegistry(a.registryService)
 	a.server = sb.Build()
 }
 
