@@ -72,7 +72,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger) (string, error)
 
 	doc, err := docx.Open(s.settings.Templates.Limitation)
 	if err != nil {
-		return "", fmt.Errorf("could not open document: %w", err)
+		return "", fmt.Errorf("could not open object: %w", err)
 	}
 
 	err = doc.ReplaceAll(replaceMap)
@@ -86,9 +86,9 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger) (string, error)
 		return "", fmt.Errorf("could not write: %w", err)
 	}
 
-	url, err := s.documents.Add(ctx, fmt.Sprintf("%s.docx", uuid.New()), buf, int64(buf.Len()))
+	url, err := s.documents.Add(ctx, fmt.Sprintf("%s.docx", uuid.New()), buf, buf.Len())
 	if err != nil {
-		return "", fmt.Errorf("could not create document: %w", err)
+		return "", fmt.Errorf("could not create object: %w", err)
 	}
 
 	return url, nil

@@ -18,10 +18,10 @@ const (
 
 type Service struct {
 	settings config.Settings
-	users    UserStorage
+	users    Storage
 }
 
-func NewService(settings config.Settings, users UserStorage) *Service {
+func NewService(settings config.Settings, users Storage) *Service {
 	return &Service{
 		settings: settings,
 		users:    users,

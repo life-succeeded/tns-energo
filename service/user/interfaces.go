@@ -5,7 +5,7 @@ import (
 	libctx "tns-energo/lib/ctx"
 )
 
-type UserStorage interface {
+type Storage interface {
 	Create(ctx libctx.Context, user User) (int, error)
 	GetByEmail(ctx libctx.Context, email string) (User, error)
 	GetByRefreshToken(ctx libctx.Context, refreshToken string) (User, error)

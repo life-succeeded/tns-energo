@@ -13,18 +13,18 @@ import (
 
 type Service struct {
 	settings config.Settings
-	registry RegistryStorage
+	registry Storage
 }
 
-func NewService(settings config.Settings, registry RegistryStorage) *Service {
+func NewService(settings config.Settings, registry Storage) *Service {
 	return &Service{
 		settings: settings,
 		registry: registry,
 	}
 }
 
-func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, fileBytes []byte) error {
-	file, err := excelize.OpenReader(bytes.NewReader(fileBytes))
+func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) error {
+	file, err := excelize.OpenReader(bytes.NewReader(payload))
 	if err != nil {
 		return fmt.Errorf("could not open file: %w", err)
 	}

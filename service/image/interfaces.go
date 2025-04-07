@@ -1,10 +1,10 @@
-package inspection
+package image
 
 import (
 	"io"
 	libctx "tns-energo/lib/ctx"
 )
 
-type DocumentStorage interface {
+type Storage interface {
 	Add(ctx libctx.Context, fileName string, payload io.Reader, payloadLength int) (string, error)
 }

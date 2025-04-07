@@ -7,13 +7,14 @@ import (
 	"time"
 	"tns-energo/api"
 	"tns-energo/config"
-	"tns-energo/database/document"
+	"tns-energo/database/object"
 	dbregistry "tns-energo/database/registry"
 	dbuser "tns-energo/database/user"
 	"tns-energo/lib/ctx"
 	"tns-energo/lib/db"
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/image"
 	"tns-energo/service/inspection"
 	"tns-energo/service/registry"
 	"tns-energo/service/user"
@@ -44,6 +45,7 @@ type App struct {
 	userService       *user.Service
 	inspectionService *inspection.Service
 	registryService   *registry.Service
+	imageService      *image.Service
 }
 
 func NewApp(mainCtx ctx.Context, log liblog.Logger, settings config.Settings) *App {
@@ -89,16 +91,25 @@ func (a *App) InitServices() (err error) {
 	documentCtx, cancelDocumentCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
 	defer cancelDocumentCtx()
 
-	documentStorage, err := document.NewStorage(documentCtx, a.minio, a.settings.Databases.Minio.DocumentsBucket, a.settings.Databases.Minio.Host)
+	documentStorage, err := object.NewStorage(documentCtx, a.minio, a.settings.Databases.Minio.DocumentsBucket, a.settings.Databases.Minio.Host)
 	if err != nil {
-		return fmt.Errorf("could not create document repository: %w", err)
+		return fmt.Errorf("could not create document storage: %w", err)
 	}
 
 	registryStorage := dbregistry.NewStorage(a.mongo, a.settings.Registry.Database, a.settings.Registry.Collection)
 
+	imageCtx, cancelImageCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
+	defer cancelImageCtx()
+
+	imageStorage, err := object.NewStorage(imageCtx, a.minio, a.settings.Databases.Minio.ImagesBucket, a.settings.Databases.Minio.Host)
+	if err != nil {
+		return fmt.Errorf("could not create image storage: %w", err)
+	}
+
 	a.userService = user.NewService(a.settings, userStorage)
 	a.inspectionService = inspection.NewService(a.settings, documentStorage)
 	a.registryService = registry.NewService(a.settings, registryStorage)
+	a.imageService = image.NewService(imageStorage)
 
 	return nil
 }
@@ -109,6 +120,7 @@ func (a *App) InitServer() {
 	sb.AddUsers(a.userService)
 	sb.AddInspections(a.inspectionService)
 	sb.AddRegistry(a.registryService)
+	sb.AddImages(a.imageService)
 	a.server = sb.Build()
 }
 

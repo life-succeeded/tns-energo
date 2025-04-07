@@ -10,13 +10,13 @@ func ParseRegistryHandler(registryService *registry.Service) router.Handler {
 	return func(c router.Context) error {
 		log := c.Log()
 
-		bytes, err := c.ReadBytes()
+		payload, err := c.ReadBytes()
 		if err != nil {
 			log.Errorf("failed to read: %v", err)
 			return err
 		}
 
-		err = registryService.Parse(c.Ctx(), log, bytes)
+		err = registryService.Parse(c.Ctx(), log, payload)
 		if err != nil {
 			log.Errorf("failed to parse: %v", err)
 			return err
