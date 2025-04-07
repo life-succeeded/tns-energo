@@ -27,7 +27,7 @@ func ParseRegistryHandler(registryService *registry.Service) router.Handler {
 	}
 }
 
-type GetItemByAccountNumberVars struct {
+type getItemByAccountNumberVars struct {
 	AccountNumber string `path:"account_number"`
 }
 
@@ -35,7 +35,7 @@ func GetItemByAccountNumberHandler(registryService *registry.Service) router.Han
 	return func(c router.Context) error {
 		log := c.Log()
 
-		var vars GetItemByAccountNumberVars
+		var vars getItemByAccountNumberVars
 		if err := c.Vars(&vars); err != nil {
 			log.Errorf("failed to read vars: %v", err)
 			return err
@@ -55,7 +55,7 @@ func GetItemsByAccountNumberRegularHandler(registryService *registry.Service) ro
 	return func(c router.Context) error {
 		log := c.Log()
 
-		var vars GetItemByAccountNumberVars
+		var vars getItemByAccountNumberVars
 		if err := c.Vars(&vars); err != nil {
 			log.Errorf("failed to read vars: %v", err)
 			return err

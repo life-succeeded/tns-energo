@@ -145,3 +145,12 @@ func (s *Service) updateToken(ctx libctx.Context, user User) (string, error) {
 
 	return newRefreshToken, nil
 }
+
+func (s *Service) GetById(ctx libctx.Context, userId int) (UserLight, error) {
+	user, err := s.users.GetLightById(ctx, userId)
+	if err != nil {
+		return UserLight{}, fmt.Errorf("could not get user: %w", err)
+	}
+
+	return user, nil
+}

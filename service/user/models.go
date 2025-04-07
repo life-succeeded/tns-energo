@@ -38,3 +38,12 @@ type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type UserLight struct {
+	Id         int     `json:"id"`
+	Email      string  `json:"email"`
+	Surname    string  `json:"surname"`
+	Name       string  `json:"name"`
+	Patronymic *string `json:"patronymic,omitempty"`
+	Position   *string `json:"position,omitempty"`
+}

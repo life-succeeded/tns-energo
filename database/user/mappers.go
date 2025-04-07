@@ -31,3 +31,14 @@ func mapToDomain(dbUser User) user.User {
 		RoleId:                dbUser.RoleId,
 	}
 }
+
+func mapToDomainLight(dbUser User) user.UserLight {
+	return user.UserLight{
+		Id:         dbUser.Id,
+		Email:      dbUser.Email,
+		Surname:    dbUser.Surname,
+		Name:       dbUser.Name,
+		Patronymic: dbUser.Patronymic,
+		Position:   dbUser.Position,
+	}
+}

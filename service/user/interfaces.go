@@ -10,4 +10,5 @@ type UserStorage interface {
 	GetByEmail(ctx libctx.Context, email string) (User, error)
 	GetByRefreshToken(ctx libctx.Context, refreshToken string) (User, error)
 	UpdateRefreshToken(ctx libctx.Context, userId int, newRefreshToken string, newRefreshTokenExpiresAt time.Time) error
+	GetLightById(ctx libctx.Context, userId int) (UserLight, error)
 }

@@ -78,3 +78,16 @@ func (s *Postgres) UpdateRefreshToken(ctx libctx.Context, userId int, newRefresh
 
 	return err
 }
+
+//go:embed sql/get_light_by_id.sql
+var getLightByIdSql string
+
+func (s *Postgres) GetLightById(ctx libctx.Context, userId int) (domain.UserLight, error) {
+	var user User
+	err := s.db.GetContext(ctx, &user, getLightByIdSql, userId)
+	if err != nil {
+		return domain.UserLight{}, err
+	}
+
+	return mapToDomainLight(user), nil
+}

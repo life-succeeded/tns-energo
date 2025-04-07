@@ -39,6 +39,7 @@ func (s *ServerBuilder) AddUsers(userService *user.Service) {
 	subRouter.HandlePost("/register", handlers.RegisterHandler(userService))
 	subRouter.HandlePost("/login", handlers.LoginHandler(userService))
 	subRouter.HandlePut("/refresh-token/{refresh_token}", handlers.RefreshTokenHandler(userService))
+	subRouter.HandleGet("/{user_id}", handlers.GetUserByIdHandler(userService))
 }
 
 func (s *ServerBuilder) AddInspections(inspectionService *inspection.Service) {
