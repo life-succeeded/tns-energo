@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 	"tns-energo/config"
-	"tns-energo/database/document"
-	"tns-energo/database/registry"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 
@@ -15,25 +13,19 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type Service interface {
-	Inspect(ctx libctx.Context, log liblog.Logger) (string, error)
-}
-
-type Impl struct {
+type Service struct {
 	settings  config.Settings
-	documents document.Repository
-	registry  registry.Repository
+	documents DocumentStorage
 }
 
-func NewService(settings config.Settings, documents document.Repository, registry registry.Repository) *Impl {
-	return &Impl{
+func NewService(settings config.Settings, documents DocumentStorage) *Service {
+	return &Service{
 		settings:  settings,
 		documents: documents,
-		registry:  registry,
 	}
 }
 
-func (s *Impl) Inspect(ctx libctx.Context, log liblog.Logger) (string, error) {
+func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger) (string, error) {
 	now := time.Now()
 
 	replaceMap := docx.PlaceholderMap{
@@ -94,7 +86,7 @@ func (s *Impl) Inspect(ctx libctx.Context, log liblog.Logger) (string, error) {
 		return "", fmt.Errorf("could not write: %w", err)
 	}
 
-	url, err := s.documents.Create(ctx, fmt.Sprintf("%s.docx", uuid.New()), buf, int64(buf.Len()))
+	url, err := s.documents.Add(ctx, fmt.Sprintf("%s.docx", uuid.New()), buf, int64(buf.Len()))
 	if err != nil {
 		return "", fmt.Errorf("could not create document: %w", err)
 	}

@@ -6,7 +6,7 @@ import (
 	"tns-energo/service/inspection"
 )
 
-func InspectHandler(inspectionsService inspection.Service) router.Handler {
+func InspectHandler(inspectionsService *inspection.Service) router.Handler {
 	return func(c router.Context) error {
 		log := c.Log()
 		response, err := inspectionsService.Inspect(c.Ctx(), log)

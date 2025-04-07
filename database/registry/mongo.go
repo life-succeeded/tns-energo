@@ -3,6 +3,7 @@ package registry
 import (
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/registry"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,7 +14,7 @@ type Mongo struct {
 	database, collection string
 }
 
-func NewRepository(cli *mongo.Client, database, collection string) *Mongo {
+func NewStorage(cli *mongo.Client, database, collection string) *Mongo {
 	return &Mongo{
 		cli:        cli,
 		database:   database,
@@ -21,44 +22,44 @@ func NewRepository(cli *mongo.Client, database, collection string) *Mongo {
 	}
 }
 
-func (r *Mongo) AddOne(ctx libctx.Context, item Item) error {
-	_, err := r.cli.
-		Database(r.database).
-		Collection(r.collection).
-		InsertOne(ctx, item)
+func (s *Mongo) AddOne(ctx libctx.Context, item registry.Item) error {
+	_, err := s.cli.
+		Database(s.database).
+		Collection(s.collection).
+		InsertOne(ctx, mapToDb(item))
 
 	return err
 }
 
-func (r *Mongo) AddMany(ctx libctx.Context, items []Item) error {
+func (s *Mongo) AddMany(ctx libctx.Context, items []registry.Item) error {
 	docs := make([]interface{}, 0, len(items))
-	for _, inspection := range items {
-		docs = append(docs, inspection)
+	for _, item := range items {
+		docs = append(docs, mapToDb(item))
 	}
 
-	_, err := r.cli.
-		Database(r.database).
-		Collection(r.collection).
+	_, err := s.cli.
+		Database(s.database).
+		Collection(s.collection).
 		InsertMany(ctx, docs)
 
 	return err
 }
 
-func (r *Mongo) GetByAccountNumber(ctx libctx.Context, accountNumber string) (Item, error) {
+func (s *Mongo) GetByAccountNumber(ctx libctx.Context, accountNumber string) (registry.Item, error) {
 	var item Item
-	err := r.cli.
-		Database(r.database).
-		Collection(r.collection).
+	err := s.cli.
+		Database(s.database).
+		Collection(s.collection).
 		FindOne(ctx, bson.M{"account_number": accountNumber}).
 		Decode(&item)
 
-	return item, err
+	return mapToDomain(item), err
 }
 
-func (r *Mongo) GetByAccountNumberRegular(ctx libctx.Context, log liblog.Logger, accountNumber string) ([]Item, error) {
-	cursor, err := r.cli.
-		Database(r.database).
-		Collection(r.collection).
+func (s *Mongo) GetByAccountNumberRegular(ctx libctx.Context, log liblog.Logger, accountNumber string) ([]registry.Item, error) {
+	cursor, err := s.cli.
+		Database(s.database).
+		Collection(s.collection).
 		Find(ctx, bson.M{"account_number": bson.M{"$regex": accountNumber, "$options": "i"}})
 	if err != nil {
 		return nil, err
@@ -75,5 +76,5 @@ func (r *Mongo) GetByAccountNumberRegular(ctx libctx.Context, log liblog.Logger,
 		return nil, err
 	}
 
-	return items, nil
+	return mapSliceToDomain(items), nil
 }

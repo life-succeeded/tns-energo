@@ -41,9 +41,9 @@ type App struct {
 	server libserver.Server
 
 	/* services */
-	userService       user.Service
-	inspectionService inspection.Service
-	registryService   registry.Service
+	userService       *user.Service
+	inspectionService *inspection.Service
+	registryService   *registry.Service
 }
 
 func NewApp(mainCtx ctx.Context, log liblog.Logger, settings config.Settings) *App {
@@ -84,21 +84,21 @@ func (a *App) InitDatabases(fs fs.FS, migrationPath string) (err error) {
 }
 
 func (a *App) InitServices() (err error) {
-	userRepository := dbuser.NewRepository(a.postgres)
+	userStorage := dbuser.NewStorage(a.postgres)
 
 	documentCtx, cancelDocumentCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
 	defer cancelDocumentCtx()
 
-	documentRepository, err := document.NewRepository(documentCtx, a.minio, a.settings.Databases.Minio.DocumentsBucket, a.settings.Databases.Minio.Host)
+	documentStorage, err := document.NewStorage(documentCtx, a.minio, a.settings.Databases.Minio.DocumentsBucket, a.settings.Databases.Minio.Host)
 	if err != nil {
 		return fmt.Errorf("could not create document repository: %w", err)
 	}
 
-	registryRepository := dbregistry.NewRepository(a.mongo, a.settings.Registry.Database, a.settings.Registry.Collection)
+	registryStorage := dbregistry.NewStorage(a.mongo, a.settings.Registry.Database, a.settings.Registry.Collection)
 
-	a.userService = user.NewService(userRepository, a.settings)
-	a.inspectionService = inspection.NewService(a.settings, documentRepository, registryRepository)
-	a.registryService = registry.NewService(a.settings, registryRepository)
+	a.userService = user.NewService(a.settings, userStorage)
+	a.inspectionService = inspection.NewService(a.settings, documentStorage)
+	a.registryService = registry.NewService(a.settings, registryStorage)
 
 	return nil
 }

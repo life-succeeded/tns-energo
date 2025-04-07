@@ -34,23 +34,23 @@ func (s *ServerBuilder) AddDebug() {
 	s.router.Install(plugin.NewPProf())
 }
 
-func (s *ServerBuilder) AddUsers(userService user.Service) {
+func (s *ServerBuilder) AddUsers(userService *user.Service) {
 	subRouter := s.router.SubRouter("/users")
 	subRouter.HandlePost("/register", handlers.RegisterHandler(userService))
 	subRouter.HandlePost("/login", handlers.LoginHandler(userService))
 	subRouter.HandlePut("/refresh-token/{refresh_token}", handlers.RefreshTokenHandler(userService))
 }
 
-func (s *ServerBuilder) AddInspections(inspectionService inspection.Service) {
+func (s *ServerBuilder) AddInspections(inspectionService *inspection.Service) {
 	subRouter := s.router.SubRouter("/inspections")
 	subRouter.HandlePost("", handlers.InspectHandler(inspectionService))
 }
 
-func (s *ServerBuilder) AddRegistry(registryService registry.Service) {
+func (s *ServerBuilder) AddRegistry(registryService *registry.Service) {
 	subRouter := s.router.SubRouter("/registry")
 	subRouter.HandlePost("/parse", handlers.ParseRegistryHandler(registryService))
 	subRouter.HandleGet("/item/by-account-number/{account_number}", handlers.GetItemByAccountNumberHandler(registryService))
-	subRouter.HandleGet("/item/by-account-number/{account_number}/regular", handlers.GetItemByAccountNumberRegularHandler(registryService))
+	subRouter.HandleGet("/items/by-account-number/{account_number}/regular", handlers.GetItemsByAccountNumberRegularHandler(registryService))
 }
 
 func (s *ServerBuilder) Build() libserver.Server {

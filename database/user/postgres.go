@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"time"
 	libctx "tns-energo/lib/ctx"
+	domain "tns-energo/service/user"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -12,8 +13,8 @@ type Postgres struct {
 	db *sqlx.DB
 }
 
-func NewRepository(db *sqlx.DB) Postgres {
-	return Postgres{
+func NewStorage(db *sqlx.DB) *Postgres {
+	return &Postgres{
 		db: db,
 	}
 }
@@ -21,8 +22,8 @@ func NewRepository(db *sqlx.DB) Postgres {
 //go:embed sql/create.sql
 var createSql string
 
-func (r Postgres) Create(ctx libctx.Context, user User) (id int, err error) {
-	rows, err := r.db.NamedQueryContext(ctx, createSql, user)
+func (s *Postgres) Create(ctx libctx.Context, user domain.User) (id int, err error) {
+	rows, err := s.db.NamedQueryContext(ctx, createSql, mapToDb(user))
 	if err != nil {
 		return 0, err
 	}
@@ -46,34 +47,34 @@ func (r Postgres) Create(ctx libctx.Context, user User) (id int, err error) {
 //go:embed sql/get_by_email.sql
 var getByEmailSql string
 
-func (r Postgres) GetByEmail(ctx libctx.Context, email string) (User, error) {
+func (s *Postgres) GetByEmail(ctx libctx.Context, email string) (domain.User, error) {
 	var user User
-	err := r.db.GetContext(ctx, &user, getByEmailSql, email)
+	err := s.db.GetContext(ctx, &user, getByEmailSql, email)
 	if err != nil {
-		return User{}, err
+		return domain.User{}, err
 	}
 
-	return user, nil
+	return mapToDomain(user), nil
 }
 
 //go:embed sql/get_by_refresh_token.sql
 var getByRefreshTokenSql string
 
-func (r Postgres) GetByRefreshToken(ctx libctx.Context, refreshToken string) (User, error) {
+func (s *Postgres) GetByRefreshToken(ctx libctx.Context, refreshToken string) (domain.User, error) {
 	var user User
-	err := r.db.GetContext(ctx, &user, getByRefreshTokenSql, refreshToken)
+	err := s.db.GetContext(ctx, &user, getByRefreshTokenSql, refreshToken)
 	if err != nil {
-		return User{}, err
+		return domain.User{}, err
 	}
 
-	return user, nil
+	return mapToDomain(user), nil
 }
 
 //go:embed sql/update_refresh_token.sql
 var updateRefreshTokenSql string
 
-func (r Postgres) UpdateRefreshToken(ctx libctx.Context, userId int, newRefreshToken string, newRefreshTokenExpiresAt time.Time) error {
-	_, err := r.db.ExecContext(ctx, updateRefreshTokenSql, userId, newRefreshToken, newRefreshTokenExpiresAt)
+func (s *Postgres) UpdateRefreshToken(ctx libctx.Context, userId int, newRefreshToken string, newRefreshTokenExpiresAt time.Time) error {
+	_, err := s.db.ExecContext(ctx, updateRefreshTokenSql, userId, newRefreshToken, newRefreshTokenExpiresAt)
 
 	return err
 }

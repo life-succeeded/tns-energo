@@ -6,7 +6,7 @@ import (
 	"tns-energo/service/registry"
 )
 
-func ParseRegistryHandler(registryService registry.Service) router.Handler {
+func ParseRegistryHandler(registryService *registry.Service) router.Handler {
 	return func(c router.Context) error {
 		log := c.Log()
 
@@ -31,7 +31,7 @@ type GetItemByAccountNumberVars struct {
 	AccountNumber string `path:"account_number"`
 }
 
-func GetItemByAccountNumberHandler(registryService registry.Service) router.Handler {
+func GetItemByAccountNumberHandler(registryService *registry.Service) router.Handler {
 	return func(c router.Context) error {
 		log := c.Log()
 
@@ -51,7 +51,7 @@ func GetItemByAccountNumberHandler(registryService registry.Service) router.Hand
 	}
 }
 
-func GetItemByAccountNumberRegularHandler(registryService registry.Service) router.Handler {
+func GetItemsByAccountNumberRegularHandler(registryService *registry.Service) router.Handler {
 	return func(c router.Context) error {
 		log := c.Log()
 
@@ -61,9 +61,9 @@ func GetItemByAccountNumberRegularHandler(registryService registry.Service) rout
 			return err
 		}
 
-		items, err := registryService.GetItemByAccountNumberRegular(c.Ctx(), log, vars.AccountNumber)
+		items, err := registryService.GetItemsByAccountNumberRegular(c.Ctx(), log, vars.AccountNumber)
 		if err != nil {
-			log.Errorf("failed to get item by account number: %v", err)
+			log.Errorf("failed to get items by account number: %v", err)
 			return err
 		}
 

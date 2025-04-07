@@ -6,7 +6,7 @@ import (
 	"tns-energo/service/user"
 )
 
-func RegisterHandler(userService user.Service) router.Handler {
+func RegisterHandler(userService *user.Service) router.Handler {
 	return func(c router.Context) error {
 		log := c.Log()
 
@@ -26,7 +26,7 @@ func RegisterHandler(userService user.Service) router.Handler {
 	}
 }
 
-func LoginHandler(userService user.Service) router.Handler {
+func LoginHandler(userService *user.Service) router.Handler {
 	return func(c router.Context) error {
 		log := c.Log()
 
@@ -50,7 +50,7 @@ type RefreshTokenVars struct {
 	RefreshToken string `path:"refresh_token"`
 }
 
-func RefreshTokenHandler(userService user.Service) router.Handler {
+func RefreshTokenHandler(userService *user.Service) router.Handler {
 	return func(c router.Context) error {
 		log := c.Log()
 
