@@ -10,67 +10,99 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/lukasjarosch/go-docx"
-	"github.com/shopspring/decimal"
 )
 
 type Service struct {
-	settings  config.Settings
-	documents DocumentStorage
+	settings    config.Settings
+	inspections Storage
+	documents   DocumentStorage
+	users       UserStorage
 }
 
-func NewService(settings config.Settings, documents DocumentStorage) *Service {
+func NewService(settings config.Settings, inspections Storage, documents DocumentStorage, users UserStorage) *Service {
 	return &Service{
-		settings:  settings,
-		documents: documents,
+		settings:    settings,
+		inspections: inspections,
+		documents:   documents,
+		users:       users,
 	}
 }
 
-func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger) (string, error) {
+func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Inspection) (string, error) {
+	// TODO: обновление по номеру счета, добавить недостающие поля, сохранять название сформированного акта в бд
 	now := time.Now()
+	user, err := s.users.GetLightById(ctx, ctx.Authorize.UserId)
+	if err != nil {
+		return "", fmt.Errorf("could not get user: %w", err)
+	}
+
+	consumerName := fmt.Sprintf("%s %s", inspection.ConsumerSurname, inspection.ConsumerName)
+	if inspection.ConsumerPatronymic != nil {
+		consumerName = fmt.Sprintf("%s %s", consumerName, *inspection.ConsumerPatronymic)
+	}
+
+	inspectorPosition := ""
+	if user.Position != nil {
+		inspectorPosition = *user.Position
+	}
+
+	inspectorName := fmt.Sprintf("%s %s", user.Surname, user.Name)
+	if user.Patronymic != nil {
+		inspectorName = fmt.Sprintf("%s %s", inspectorName, *user.Patronymic)
+	}
+
+	haveAutomaton := "□"
+	noAutomaton := "■"
+	if inspection.HaveAutomaton {
+		haveAutomaton = "■"
+		noAutomaton = "□"
+	}
 
 	replaceMap := docx.PlaceholderMap{
 		"act_number":            "123",
-		"act_date_day":          now.Day(),
-		"act_date_month":        russianMonth(now.Month()),
-		"act_date_year":         now.Year(),
-		"consumer_name":         `ООО "Рога и Копыта"`,
-		"inspector_position":    "главный инспектор",
-		"inspector_name":        "Пресняков Артем Дмитриевич",
-		"consumer_agent_name":   "Каипов Шамиль Артемович",
-		"account_number":        "228Z",
+		"act_date_day":          inspection.InspectionDate.Day(),
+		"act_date_month":        russianMonth(inspection.InspectionDate.Month()),
+		"act_date_year":         inspection.InspectionDate.Year(),
+		"consumer_name":         consumerName,
+		"inspector_position":    inspectorPosition,
+		"inspector_name":        inspectorName,
+		"consumer_agent_name":   consumerName,
+		"account_number":        inspection.AccountNumber,
 		"contract_number":       "69",
 		"contract_date":         now.Format("02.01.2006"),
-		"object_city":           "Пенза",
-		"object_street":         "Ворошилова",
-		"object_house":          "13,",
-		"object_apartment":      "кв. 77",
-		"reason":                "непоправимых невероятных просто последствий, на которые мы никак не можем повлиять вообще, а также длинного текста без конца и края",
-		"method":                "ограничения режима потребления электрической энергии навсегда - иными словами - бан",
+		"object":                inspection.Object,
+		"reason":                inspection.Reason,
+		"method":                inspection.Method,
 		"seal_number":           "348957",
-		"action_date_hours":     now.Hour(),
-		"action_date_minutes":   now.Minute(),
-		"action_date_day":       now.Day(),
-		"action_date_month":     russianMonth(now.Month()),
-		"action_date_year":      now.Year(),
-		"has_automaton":         "■",
-		"no_automaton":          "□",
+		"action_date_hours":     inspection.ActionDate.Hour(),
+		"action_date_minutes":   inspection.ActionDate.Minute(),
+		"action_date_day":       inspection.ActionDate.Day(),
+		"action_date_month":     russianMonth(inspection.ActionDate.Month()),
+		"action_date_year":      inspection.ActionDate.Year(),
+		"have_automaton":        haveAutomaton,
+		"no_automaton":          noAutomaton,
 		"automaton_seal_number": "2296923",
-		"device_type":           "счетчик",
-		"device_number":         "2843620",
-		"voltage":               decimal.NewFromFloat(220),
-		"amperage":              decimal.NewFromFloat(0.5),
+		"device_type":           inspection.DeviceType,
+		"device_number":         inspection.DeviceNumber,
+		"voltage":               inspection.Voltage,
+		"amperage":              inspection.Amperage,
 		"valency_before_dot":    "100000",
 		"valency_after_dot":     "00",
 		"manufacture_year":      now.Year() - 5,
-		"device_value":          decimal.NewFromFloat(348625.12),
+		"device_value":          inspection.DeviceValue,
 		"verification_quarter":  2,
 		"verification_year":     now.Year() - 1,
-		"accuracy_class":        "A",
-		"tariffs_count":         7,
-		"deployment_place":      "г. Пенза, ул. Ворошилова, д. 13, кв. 77",
+		"accuracy_class":        inspection.AccuracyClass,
+		"tariffs_count":         inspection.TariffsCount,
+		"deployment_place":      inspection.DeploymentPlace,
 	}
 
-	doc, err := docx.Open(s.settings.Templates.Limitation)
+	path := s.settings.Templates.Limitation
+	if inspection.Resolution == Resumption {
+		path = s.settings.Templates.Resumption
+	}
+
+	doc, err := docx.Open(path)
 	if err != nil {
 		return "", fmt.Errorf("could not open object: %w", err)
 	}
@@ -89,6 +121,11 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger) (string, error)
 	url, err := s.documents.Add(ctx, fmt.Sprintf("%s.docx", uuid.New()), buf, buf.Len())
 	if err != nil {
 		return "", fmt.Errorf("could not create object: %w", err)
+	}
+
+	err = s.inspections.AddOne(ctx, inspection)
+	if err != nil {
+		return "", fmt.Errorf("could not add inspection: %w", err)
 	}
 
 	return url, nil

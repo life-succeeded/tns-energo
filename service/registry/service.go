@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
@@ -41,10 +42,16 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) e
 	}
 
 	items := make([]Item, 0, len(rows)-1)
+	now := time.Now()
 	for _, row := range rows[1:] {
 		if len(row) != 6 {
 			log.Errorf("invalid row length: %d", len(row))
 			continue
+		}
+
+		patronymic := &row[3]
+		if *patronymic == "" {
+			patronymic = nil
 		}
 
 		haveAutomaton := false
@@ -56,9 +63,11 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) e
 			AccountNumber: row[0],
 			Surname:       row[1],
 			Name:          row[2],
-			Patronymic:    row[3],
+			Patronymic:    patronymic,
 			Object:        row[4],
 			HaveAutomaton: haveAutomaton,
+			CreatedAt:     now,
+			UpdatedAt:     now,
 		})
 	}
 

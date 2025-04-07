@@ -7,6 +7,7 @@ import (
 	"time"
 	"tns-energo/api"
 	"tns-energo/config"
+	dbinspection "tns-energo/database/inspection"
 	"tns-energo/database/object"
 	dbregistry "tns-energo/database/registry"
 	dbuser "tns-energo/database/user"
@@ -87,6 +88,7 @@ func (a *App) InitDatabases(fs fs.FS, migrationPath string) (err error) {
 
 func (a *App) InitServices() (err error) {
 	userStorage := dbuser.NewStorage(a.postgres)
+	inspectionStorage := dbinspection.NewStorage(a.mongo, a.settings.Inspections.Database, a.settings.Inspections.Collection)
 
 	documentCtx, cancelDocumentCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
 	defer cancelDocumentCtx()
@@ -107,7 +109,7 @@ func (a *App) InitServices() (err error) {
 	}
 
 	a.userService = user.NewService(a.settings, userStorage)
-	a.inspectionService = inspection.NewService(a.settings, documentStorage)
+	a.inspectionService = inspection.NewService(a.settings, inspectionStorage, documentStorage, userStorage)
 	a.registryService = registry.NewService(a.settings, registryStorage)
 	a.imageService = image.NewService(imageStorage)
 

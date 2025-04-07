@@ -11,6 +11,8 @@ func mapToDb(item registry.Item) Item {
 		Patronymic:    item.Patronymic,
 		Object:        item.Object,
 		HaveAutomaton: item.HaveAutomaton,
+		CreatedAt:     item.CreatedAt,
+		UpdatedAt:     item.UpdatedAt,
 	}
 }
 
@@ -23,6 +25,8 @@ func mapToDomain(item Item) registry.Item {
 		Patronymic:    item.Patronymic,
 		Object:        item.Object,
 		HaveAutomaton: item.HaveAutomaton,
+		CreatedAt:     item.CreatedAt,
+		UpdatedAt:     item.UpdatedAt,
 	}
 }
 

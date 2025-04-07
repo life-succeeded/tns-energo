@@ -78,3 +78,12 @@ func (s *Mongo) GetByAccountNumberRegular(ctx libctx.Context, log liblog.Logger,
 
 	return mapSliceToDomain(items), nil
 }
+
+func (s *Mongo) UpdateOne(ctx libctx.Context, item registry.Item) error {
+	_, err := s.cli.
+		Database(s.database).
+		Collection(s.collection).
+		UpdateOne(ctx, bson.M{"account_number": item.AccountNumber}, bson.M{"$set": mapToDb(item)})
+
+	return err
+}
