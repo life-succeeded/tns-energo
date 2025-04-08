@@ -88,8 +88,6 @@ services:
     volumes:
       - ./nginx.prod.conf:/etc/nginx/nginx.conf
     ports:
-      - "9000:9000"
-      - "9001:9001"
       - "80:80"
       - "443:443"
     depends_on:

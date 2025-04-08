@@ -10,7 +10,7 @@
       "user": "minioadmin",
       "password": "X8b3nTOBckRF",
       "use_ssl": false,
-      "host": "http://storage.quassbot.ru"
+      "host": "http://tns.quassbot.ru/storage"
     }
   },
   "auth": {
