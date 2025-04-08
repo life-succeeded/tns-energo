@@ -1,0 +1,41 @@
+name: Docker Build & Deploy
+
+on:
+  push:
+    branches: [master]
+
+env:
+  CONTAINER_NAME: tns-energo
+  CONTAINER_PORT: 8080
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get short SHA
+        id: vars
+        run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Build Docker Image with unique tag
+        run: |
+          docker build -t $CONTAINER_NAME:${{ env.SHORT_SHA }} .
+
+      - name: Stop and remove old container if exists
+        run: |
+          if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
+            docker stop $CONTAINER_NAME
+          fi
+          if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
+            docker rm $CONTAINER_NAME
+          fi
+
+      - name: Run new container
+        run: |
+          docker run -d --name $CONTAINER_NAME -e ENV=prod -p $CONTAINER_PORT:$CONTAINER_PORT $CONTAINER_NAME:${{ env.SHORT_SHA }}
+
+      - name: Cleanup old dangling images
+        run: docker image prune -f
