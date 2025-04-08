@@ -35,7 +35,7 @@ jobs:
 
       - name: Run new container
         run: |
-          docker run -d --name $CONTAINER_NAME -e ENV=prod -p $CONTAINER_PORT:$CONTAINER_PORT $CONTAINER_NAME:${{ env.SHORT_SHA }}
+          docker run -d --name $CONTAINER_NAME --network=backend -e ENV=prod -p $CONTAINER_PORT:$CONTAINER_PORT $CONTAINER_NAME:${{ env.SHORT_SHA }}
 
       - name: Cleanup old dangling images
         run: docker image prune -f
