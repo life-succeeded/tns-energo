@@ -86,11 +86,12 @@ services:
     tty: true
     container_name: nginx
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf
     ports:
-      - "8080:8080"
       - "9000:9000"
       - "9001:9001"
+      - "80:80"
+      - "443:443"
     depends_on:
       - tns-energo
     networks:
