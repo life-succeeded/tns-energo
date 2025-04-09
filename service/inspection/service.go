@@ -29,7 +29,7 @@ func NewService(settings config.Settings, inspections Storage, documents Documen
 }
 
 func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Inspection) (string, error) {
-	// TODO: обновление по номеру счета, добавить недостающие поля
+	// TODO: обновление по номеру счета
 	now := time.Now()
 	user, err := s.users.GetLightById(ctx, ctx.Authorize.UserId)
 	if err != nil {
@@ -38,9 +38,12 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 
 	inspection.InspectorId = ctx.Authorize.UserId
 
-	consumerName := fmt.Sprintf("%s %s", inspection.ConsumerSurname, inspection.ConsumerName)
-	if inspection.ConsumerPatronymic != nil {
-		consumerName = fmt.Sprintf("%s %s", consumerName, *inspection.ConsumerPatronymic)
+	consumerName := fmt.Sprintf("%s %s", inspection.Consumer.Surname, inspection.Consumer.Name)
+	if len(inspection.Consumer.Patronymic) != 0 {
+		consumerName = fmt.Sprintf("%s %s", consumerName, inspection.Consumer.Patronymic)
+	}
+	if len(consumerName) == 0 {
+		consumerName = inspection.Consumer.LegalEntityName
 	}
 
 	inspectorPosition := ""
@@ -61,7 +64,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 	}
 
 	replaceMap := docx.PlaceholderMap{
-		"act_number":            "123",
+		"act_number":            inspection.ActNumber,
 		"act_date_day":          inspection.InspectionDate.Day(),
 		"act_date_month":        russianMonth(inspection.InspectionDate.Month()),
 		"act_date_year":         inspection.InspectionDate.Year(),
@@ -70,12 +73,12 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 		"inspector_name":        inspectorName,
 		"consumer_agent_name":   consumerName,
 		"account_number":        inspection.AccountNumber,
-		"contract_number":       "69",
-		"contract_date":         now.Format("02.01.2006"),
+		"contract_number":       inspection.Contract.Number,
+		"contract_date":         inspection.Contract.Date.Format("02.01.2006"),
 		"object":                inspection.Object,
 		"reason":                inspection.Reason,
 		"method":                inspection.Method,
-		"seal_number":           "348957",
+		"seal_number":           inspection.SealNumber,
 		"action_date_hours":     inspection.ActionDate.Hour(),
 		"action_date_minutes":   inspection.ActionDate.Minute(),
 		"action_date_day":       inspection.ActionDate.Day(),
@@ -83,20 +86,20 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 		"action_date_year":      inspection.ActionDate.Year(),
 		"have_automaton":        haveAutomaton,
 		"no_automaton":          noAutomaton,
-		"automaton_seal_number": "2296923",
-		"device_type":           inspection.DeviceType,
-		"device_number":         inspection.DeviceNumber,
-		"voltage":               inspection.Voltage,
-		"amperage":              inspection.Amperage,
-		"valency_before_dot":    "100000",
-		"valency_after_dot":     "00",
-		"manufacture_year":      now.Year() - 5,
-		"device_value":          inspection.DeviceValue,
-		"verification_quarter":  2,
-		"verification_year":     now.Year() - 1,
-		"accuracy_class":        inspection.AccuracyClass,
-		"tariffs_count":         inspection.TariffsCount,
-		"deployment_place":      inspection.DeploymentPlace,
+		"automaton_seal_number": inspection.AutomatonSealNumber,
+		"device_type":           inspection.Device.Type,
+		"device_number":         inspection.Device.Number,
+		"voltage":               inspection.Device.Voltage,
+		"amperage":              inspection.Device.Amperage,
+		"valency_before_dot":    inspection.Device.ValencyBeforeDot,
+		"valency_after_dot":     inspection.Device.ValencyAfterDot,
+		"manufacture_year":      inspection.Device.ManufactureYear,
+		"device_value":          inspection.Device.Value,
+		"verification_quarter":  inspection.Device.VerificationQuarter,
+		"verification_year":     inspection.Device.VerificationYear,
+		"accuracy_class":        inspection.Device.AccuracyClass,
+		"tariffs_count":         inspection.Device.TariffsCount,
+		"deployment_place":      inspection.Device.DeploymentPlace,
 	}
 
 	path := s.settings.Templates.Limitation
