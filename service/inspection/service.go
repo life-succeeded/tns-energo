@@ -9,6 +9,7 @@ import (
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/registry"
+	"tns-energo/service/user"
 
 	"github.com/google/uuid"
 	"github.com/lukasjarosch/go-docx"
@@ -40,6 +41,79 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 
 	inspection.InspectorId = ctx.Authorize.UserId
 
+	buf, err := s.generateAct(ctx, log, inspection, user)
+	if err != nil {
+		return ResolutionFile{}, fmt.Errorf("could not generate act: %w", err)
+	}
+
+	inspection.ResolutionFile = ResolutionFile{
+		Name: fmt.Sprintf("%s.docx", uuid.New()),
+	}
+	url, err := s.documents.Add(ctx, inspection.ResolutionFile.Name, buf, buf.Len())
+	if err != nil {
+		return ResolutionFile{}, fmt.Errorf("could not create object: %w", err)
+	}
+
+	inspection.ResolutionFile.URL = url
+
+	now := time.Now()
+	inspection.CreatedAt = now
+	inspection.UpdatedAt = now
+	err = s.inspections.AddOne(ctx, inspection)
+	if err != nil {
+		return ResolutionFile{}, fmt.Errorf("could not add inspection: %w", err)
+	}
+
+	item, err := s.registry.GetByAccountNumber(ctx, inspection.AccountNumber)
+	if err != nil {
+		if !errors.Is(err, registry.ErrItemNotFound) {
+			return ResolutionFile{}, fmt.Errorf("could not get registry item: %w", err)
+		}
+
+		addErr := s.registry.AddOne(ctx, registry.Item{
+			AccountNumber: inspection.AccountNumber,
+			Surname:       inspection.Consumer.Surname,
+			Name:          inspection.Consumer.Name,
+			Patronymic:    &inspection.Consumer.Patronymic,
+			Object:        inspection.Object,
+			HaveAutomaton: inspection.HaveAutomaton,
+			CreatedAt:     now,
+			UpdatedAt:     now,
+		})
+		if addErr != nil {
+			return ResolutionFile{}, fmt.Errorf("could not add registry item: %w", err)
+		}
+
+		return inspection.ResolutionFile, nil
+	}
+
+	err = s.registry.UpdateOne(ctx, registry.Item{
+		AccountNumber: inspection.AccountNumber,
+		Surname:       inspection.Consumer.Surname,
+		Name:          inspection.Consumer.Name,
+		Patronymic:    &inspection.Consumer.Patronymic,
+		Object:        inspection.Object,
+		HaveAutomaton: inspection.HaveAutomaton,
+		CreatedAt:     item.CreatedAt,
+		UpdatedAt:     now,
+	})
+	if err != nil {
+		return ResolutionFile{}, fmt.Errorf("could not update registry item: %w", err)
+	}
+
+	return inspection.ResolutionFile, nil
+}
+
+func (s *Service) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspectorId int) ([]Inspection, error) {
+	inspections, err := s.inspections.GetByInspectorId(ctx, log, inspectorId)
+	if err != nil {
+		return nil, fmt.Errorf("could not get inspections: %w", err)
+	}
+
+	return inspections, nil
+}
+
+func (s *Service) generateAct(ctx libctx.Context, log liblog.Logger, inspection Inspection, user user.UserLight) (*bytes.Buffer, error) {
 	consumerName := fmt.Sprintf("%s %s", inspection.Consumer.Surname, inspection.Consumer.Name)
 	if len(inspection.Consumer.Patronymic) != 0 {
 		consumerName = fmt.Sprintf("%s %s", consumerName, inspection.Consumer.Patronymic)
@@ -111,85 +185,21 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 
 	doc, err := docx.Open(path)
 	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not open object: %w", err)
+		return nil, fmt.Errorf("could not open object: %w", err)
 	}
 
 	err = doc.ReplaceAll(replaceMap)
 	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not replace: %w", err)
+		return nil, fmt.Errorf("could not replace: %w", err)
 	}
 
 	buf := &bytes.Buffer{}
 	err = doc.Write(buf)
 	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not write: %w", err)
+		return nil, fmt.Errorf("could not write: %w", err)
 	}
 
-	inspection.ResolutionFile = ResolutionFile{
-		Name: fmt.Sprintf("%s.docx", uuid.New()),
-	}
-	url, err := s.documents.Add(ctx, inspection.ResolutionFile.Name, buf, buf.Len())
-	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not create object: %w", err)
-	}
-
-	inspection.ResolutionFile.URL = url
-
-	now := time.Now()
-	inspection.CreatedAt = now
-	inspection.UpdatedAt = now
-	err = s.inspections.AddOne(ctx, inspection)
-	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not add inspection: %w", err)
-	}
-
-	item, err := s.registry.GetByAccountNumber(ctx, inspection.AccountNumber)
-	if err != nil {
-		if !errors.Is(err, registry.ErrItemNotFound) {
-			return ResolutionFile{}, fmt.Errorf("could not get registry item: %w", err)
-		}
-
-		addErr := s.registry.AddOne(ctx, registry.Item{
-			AccountNumber: inspection.AccountNumber,
-			Surname:       inspection.Consumer.Surname,
-			Name:          inspection.Consumer.Name,
-			Patronymic:    &inspection.Consumer.Patronymic,
-			Object:        inspection.Object,
-			HaveAutomaton: inspection.HaveAutomaton,
-			CreatedAt:     now,
-			UpdatedAt:     now,
-		})
-		if addErr != nil {
-			return ResolutionFile{}, fmt.Errorf("could not add registry item: %w", err)
-		}
-
-		return inspection.ResolutionFile, nil
-	}
-
-	err = s.registry.UpdateOne(ctx, registry.Item{
-		AccountNumber: inspection.AccountNumber,
-		Surname:       inspection.Consumer.Surname,
-		Name:          inspection.Consumer.Name,
-		Patronymic:    &inspection.Consumer.Patronymic,
-		Object:        inspection.Object,
-		HaveAutomaton: inspection.HaveAutomaton,
-		CreatedAt:     item.CreatedAt,
-		UpdatedAt:     now,
-	})
-	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not update registry item: %w", err)
-	}
-
-	return inspection.ResolutionFile, nil
-}
-
-func (s *Service) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspectorId int) ([]Inspection, error) {
-	inspections, err := s.inspections.GetByInspectorId(ctx, log, inspectorId)
-	if err != nil {
-		return nil, fmt.Errorf("could not get inspections: %w", err)
-	}
-
-	return inspections, nil
+	return buf, nil
 }
 
 func russianMonth(month time.Month) string {

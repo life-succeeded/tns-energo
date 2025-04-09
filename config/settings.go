@@ -5,8 +5,9 @@ type Settings struct {
 	Databases   Databases   `json:"databases"`
 	Auth        Auth        `json:"auth"`
 	Templates   Templates   `json:"templates"`
-	Registry    Registry    `json:"registry"`
-	Inspections Inspections `json:"inspections"`
+	Registry    MongoConfig `json:"registry"`
+	Inspections MongoConfig `json:"inspections"`
+	Reports     MongoConfig `json:"reports"`
 }
 
 type Databases struct {
@@ -35,12 +36,7 @@ type Templates struct {
 	Resumption string `json:"resumption"`
 }
 
-type Registry struct {
-	Database   string `json:"database"`
-	Collection string `json:"collection"`
-}
-
-type Inspections struct {
+type MongoConfig struct {
 	Database   string `json:"database"`
 	Collection string `json:"collection"`
 }

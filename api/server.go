@@ -11,6 +11,7 @@ import (
 	"tns-energo/lib/http/router/status"
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/analytics"
 	"tns-energo/service/image"
 	"tns-energo/service/inspection"
 	"tns-energo/service/registry"
@@ -59,6 +60,11 @@ func (s *ServerBuilder) AddRegistry(registryService *registry.Service) {
 func (s *ServerBuilder) AddImages(imageService *image.Service) {
 	subRouter := s.router.SubRouter("/images")
 	subRouter.HandlePost("", handlers.UploadImageHandler(imageService))
+}
+
+func (s *ServerBuilder) AddAnalytics(analyticsService *analytics.Service) {
+	subRouter := s.router.SubRouter("/analytics")
+	subRouter.HandleGet("/daily/{date}", handlers.GenerateDailyReportHandler(analyticsService))
 }
 
 func (s *ServerBuilder) Build() libserver.Server {

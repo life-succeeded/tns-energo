@@ -28,5 +28,9 @@
   "inspections": {
     "database": "tns-energo",
     "collection": "inspections"
+  },
+  "reports": {
+    "database": "tns-energo",
+    "collection": "reports"
   }
 }

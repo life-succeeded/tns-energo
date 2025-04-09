@@ -10,11 +10,13 @@ import (
 	dbinspection "tns-energo/database/inspection"
 	"tns-energo/database/object"
 	dbregistry "tns-energo/database/registry"
+	"tns-energo/database/report"
 	dbuser "tns-energo/database/user"
 	"tns-energo/lib/ctx"
 	"tns-energo/lib/db"
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/analytics"
 	"tns-energo/service/image"
 	"tns-energo/service/inspection"
 	"tns-energo/service/registry"
@@ -47,6 +49,7 @@ type App struct {
 	inspectionService *inspection.Service
 	registryService   *registry.Service
 	imageService      *image.Service
+	analyticsService  *analytics.Service
 }
 
 func NewApp(mainCtx ctx.Context, log liblog.Logger, settings config.Settings) *App {
@@ -89,6 +92,8 @@ func (a *App) InitDatabases(fs fs.FS, migrationPath string) (err error) {
 func (a *App) InitServices() (err error) {
 	userStorage := dbuser.NewStorage(a.postgres)
 	inspectionStorage := dbinspection.NewStorage(a.mongo, a.settings.Inspections.Database, a.settings.Inspections.Collection)
+	registryStorage := dbregistry.NewStorage(a.mongo, a.settings.Registry.Database, a.settings.Registry.Collection)
+	reportStorage := report.NewStorage(a.mongo, a.settings.Reports.Database, a.settings.Reports.Collection)
 
 	documentCtx, cancelDocumentCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
 	defer cancelDocumentCtx()
@@ -97,8 +102,6 @@ func (a *App) InitServices() (err error) {
 	if err != nil {
 		return fmt.Errorf("could not create document storage: %w", err)
 	}
-
-	registryStorage := dbregistry.NewStorage(a.mongo, a.settings.Registry.Database, a.settings.Registry.Collection)
 
 	imageCtx, cancelImageCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
 	defer cancelImageCtx()
@@ -112,6 +115,7 @@ func (a *App) InitServices() (err error) {
 	a.inspectionService = inspection.NewService(a.settings, inspectionStorage, documentStorage, userStorage, registryStorage)
 	a.registryService = registry.NewService(a.settings, registryStorage)
 	a.imageService = image.NewService(imageStorage)
+	a.analyticsService = analytics.NewService(a.settings, reportStorage)
 
 	return nil
 }
@@ -123,6 +127,7 @@ func (a *App) InitServer() {
 	sb.AddInspections(a.inspectionService)
 	sb.AddRegistry(a.registryService)
 	sb.AddImages(a.imageService)
+	sb.AddAnalytics(a.analyticsService)
 	a.server = sb.Build()
 }
 
