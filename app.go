@@ -137,8 +137,7 @@ func (a *App) InitServer() {
 func (a *App) Start() error {
 	a.server.Start()
 
-	err := a.cronService.LaunchJobs(a.mainCtx, a.log)
-	if err != nil {
+	if err := a.cronService.LaunchJobs(a.mainCtx, a.log); err != nil {
 		return fmt.Errorf("could not launch jobs: %w", err)
 	}
 
@@ -146,6 +145,10 @@ func (a *App) Start() error {
 }
 
 func (a *App) Stop(ctx context.Context) {
+	if err := a.cronService.Shutdown(); err != nil {
+		a.log.Errorf("could not shutdown cron scheduler: %v", err)
+	}
+
 	a.server.Stop()
 
 	if err := a.postgres.Close(); err != nil {

@@ -52,8 +52,7 @@ func (s *Service) LaunchJobs(ctx context.Context, log liblog.Logger) error {
 }
 
 func (s *Service) Shutdown() error {
-	err := s.scheduler.Shutdown()
-	if err != nil {
+	if err := s.scheduler.Shutdown(); err != nil {
 		return fmt.Errorf("could not shutdown cron scheduler: %w", err)
 	}
 
