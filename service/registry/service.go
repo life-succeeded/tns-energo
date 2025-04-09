@@ -27,11 +27,11 @@ func NewService(settings config.Settings, registry Storage) *Service {
 func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) error {
 	file, err := excelize.OpenReader(bytes.NewReader(payload))
 	if err != nil {
-		return fmt.Errorf("could not open file: %w", err)
+		return fmt.Errorf("could not open excel file: %w", err)
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			log.Errorf("failed to close file: %v", err)
+			log.Errorf("failed to close excel file: %v", err)
 		}
 	}()
 

@@ -185,18 +185,18 @@ func (s *Service) generateAct(ctx libctx.Context, log liblog.Logger, inspection 
 
 	doc, err := docx.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("could not open object: %w", err)
+		return nil, fmt.Errorf("could not open act template: %w", err)
 	}
 
 	err = doc.ReplaceAll(replaceMap)
 	if err != nil {
-		return nil, fmt.Errorf("could not replace: %w", err)
+		return nil, fmt.Errorf("could not replace vars in act: %w", err)
 	}
 
 	buf := &bytes.Buffer{}
 	err = doc.Write(buf)
 	if err != nil {
-		return nil, fmt.Errorf("could not write: %w", err)
+		return nil, fmt.Errorf("could not write act to buffer: %w", err)
 	}
 
 	return buf, nil
