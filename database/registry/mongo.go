@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"errors"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/registry"
@@ -52,6 +53,10 @@ func (s *Mongo) GetByAccountNumber(ctx libctx.Context, accountNumber string) (re
 		Collection(s.collection).
 		FindOne(ctx, bson.M{"account_number": accountNumber}).
 		Decode(&item)
+
+	if err != nil && errors.Is(err, mongo.ErrNoDocuments) {
+		return registry.Item{}, registry.ErrItemNotFound
+	}
 
 	return mapToDomain(item), err
 }

@@ -109,7 +109,7 @@ func (a *App) InitServices() (err error) {
 	}
 
 	a.userService = user.NewService(a.settings, userStorage)
-	a.inspectionService = inspection.NewService(a.settings, inspectionStorage, documentStorage, userStorage)
+	a.inspectionService = inspection.NewService(a.settings, inspectionStorage, documentStorage, userStorage, registryStorage)
 	a.registryService = registry.NewService(a.settings, registryStorage)
 	a.imageService = image.NewService(imageStorage)
 

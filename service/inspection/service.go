@@ -2,11 +2,13 @@ package inspection
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"time"
 	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/registry"
 
 	"github.com/google/uuid"
 	"github.com/lukasjarosch/go-docx"
@@ -17,20 +19,20 @@ type Service struct {
 	inspections Storage
 	documents   DocumentStorage
 	users       UserStorage
+	registry    RegistryStorage
 }
 
-func NewService(settings config.Settings, inspections Storage, documents DocumentStorage, users UserStorage) *Service {
+func NewService(settings config.Settings, inspections Storage, documents DocumentStorage, users UserStorage, registry RegistryStorage) *Service {
 	return &Service{
 		settings:    settings,
 		inspections: inspections,
 		documents:   documents,
 		users:       users,
+		registry:    registry,
 	}
 }
 
 func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Inspection) (string, error) {
-	// TODO: обновление по номеру счета
-	now := time.Now()
 	user, err := s.users.GetLightById(ctx, ctx.Authorize.UserId)
 	if err != nil {
 		return "", fmt.Errorf("could not get user: %w", err)
@@ -129,11 +131,49 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 		return "", fmt.Errorf("could not create object: %w", err)
 	}
 
+	now := time.Now()
 	inspection.CreatedAt = now
 	inspection.UpdatedAt = now
 	err = s.inspections.AddOne(ctx, inspection)
 	if err != nil {
 		return "", fmt.Errorf("could not add inspection: %w", err)
+	}
+
+	item, err := s.registry.GetByAccountNumber(ctx, inspection.AccountNumber)
+	if err != nil {
+		if !errors.Is(err, registry.ErrItemNotFound) {
+			return "", fmt.Errorf("could not get registry item: %w", err)
+		}
+
+		addErr := s.registry.AddOne(ctx, registry.Item{
+			AccountNumber: inspection.AccountNumber,
+			Surname:       inspection.Consumer.Surname,
+			Name:          inspection.Consumer.Name,
+			Patronymic:    &inspection.Consumer.Patronymic,
+			Object:        inspection.Object,
+			HaveAutomaton: inspection.HaveAutomaton,
+			CreatedAt:     now,
+			UpdatedAt:     now,
+		})
+		if addErr != nil {
+			return "", fmt.Errorf("could not add registry item: %w", err)
+		}
+
+		return url, nil
+	}
+
+	err = s.registry.UpdateOne(ctx, registry.Item{
+		AccountNumber: inspection.AccountNumber,
+		Surname:       inspection.Consumer.Surname,
+		Name:          inspection.Consumer.Name,
+		Patronymic:    &inspection.Consumer.Patronymic,
+		Object:        inspection.Object,
+		HaveAutomaton: inspection.HaveAutomaton,
+		CreatedAt:     item.CreatedAt,
+		UpdatedAt:     now,
+	})
+	if err != nil {
+		return "", fmt.Errorf("could not update registry item: %w", err)
 	}
 
 	return url, nil
