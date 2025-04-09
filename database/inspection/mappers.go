@@ -24,7 +24,7 @@ func mapToDb(inspection domain.Inspection) Inspection {
 		Images:              mapImageSliceToDb(inspection.Images),
 		Device:              mapDeviceToDb(inspection.Device),
 		InspectionDate:      inspection.InspectionDate,
-		ResolutionFileName:  inspection.ResolutionFileName,
+		ResolutionFile:      mapResolutionFileToDb(inspection.ResolutionFile),
 		ActNumber:           inspection.ActNumber,
 		Contract:            mapContractToDb(inspection.Contract),
 		SealNumber:          inspection.SealNumber,
@@ -83,6 +83,13 @@ func mapContractToDb(contract domain.Contract) Contract {
 	}
 }
 
+func mapResolutionFileToDb(file domain.ResolutionFile) ResolutionFile {
+	return ResolutionFile{
+		Name: file.Name,
+		URL:  file.URL,
+	}
+}
+
 func mapToDomain(inspection Inspection) domain.Inspection {
 	return domain.Inspection{
 		Id:                  inspection.Id,
@@ -100,7 +107,7 @@ func mapToDomain(inspection Inspection) domain.Inspection {
 		Images:              mapImageSliceToDomain(inspection.Images),
 		Device:              mapDeviceToDomain(inspection.Device),
 		InspectionDate:      inspection.InspectionDate,
-		ResolutionFileName:  inspection.ResolutionFileName,
+		ResolutionFile:      mapResolutionFileToDomain(inspection.ResolutionFile),
 		ActNumber:           inspection.ActNumber,
 		Contract:            mapContractToDomain(inspection.Contract),
 		SealNumber:          inspection.SealNumber,
@@ -165,5 +172,12 @@ func mapContractToDomain(contract Contract) domain.Contract {
 	return domain.Contract{
 		Number: contract.Number,
 		Date:   contract.Date,
+	}
+}
+
+func mapResolutionFileToDomain(file ResolutionFile) domain.ResolutionFile {
+	return domain.ResolutionFile{
+		Name: file.Name,
+		URL:  file.URL,
 	}
 }
