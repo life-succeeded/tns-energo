@@ -17,6 +17,7 @@ import (
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/analytics"
+	"tns-energo/service/cron"
 	"tns-energo/service/image"
 	"tns-energo/service/inspection"
 	"tns-energo/service/registry"
@@ -50,6 +51,7 @@ type App struct {
 	registryService   *registry.Service
 	imageService      *image.Service
 	analyticsService  *analytics.Service
+	cronService       *cron.Service
 }
 
 func NewApp(mainCtx ctx.Context, log liblog.Logger, settings config.Settings) *App {
@@ -116,6 +118,7 @@ func (a *App) InitServices() (err error) {
 	a.registryService = registry.NewService(a.settings, registryStorage)
 	a.imageService = image.NewService(imageStorage)
 	a.analyticsService = analytics.NewService(a.settings, reportStorage)
+	a.cronService = cron.NewService(a.settings, a.analyticsService)
 
 	return nil
 }
@@ -131,8 +134,15 @@ func (a *App) InitServer() {
 	a.server = sb.Build()
 }
 
-func (a *App) Start() {
+func (a *App) Start() error {
 	a.server.Start()
+
+	err := a.cronService.LaunchJobs(a.mainCtx, a.log)
+	if err != nil {
+		return fmt.Errorf("could not launch jobs: %w", err)
+	}
+
+	return nil
 }
 
 func (a *App) Stop(ctx context.Context) {

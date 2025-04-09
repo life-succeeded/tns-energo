@@ -32,5 +32,8 @@
   "reports": {
     "database": "tns-energo",
     "collection": "reports"
+  },
+  "cron": {
+    "daily_report_time": "18:00"
   }
 }

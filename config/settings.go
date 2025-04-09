@@ -8,6 +8,7 @@ type Settings struct {
 	Registry    MongoConfig `json:"registry"`
 	Inspections MongoConfig `json:"inspections"`
 	Reports     MongoConfig `json:"reports"`
+	Cron        Cron        `json:"cron"`
 }
 
 type Databases struct {
@@ -39,4 +40,8 @@ type Templates struct {
 type MongoConfig struct {
 	Database   string `json:"database"`
 	Collection string `json:"collection"`
+}
+
+type Cron struct {
+	DailyReportTime string `json:"daily_report_time"`
 }

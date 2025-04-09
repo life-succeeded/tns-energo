@@ -44,7 +44,10 @@ func main() {
 
 	app.InitServer()
 
-	app.Start()
+	if err := app.Start(); err != nil {
+		log.Errorf("failed to start app: %v", err)
+		return
+	}
 
 	libos.WaitTerminate(mainCtx, app.Stop)
 
