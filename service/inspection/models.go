@@ -8,6 +8,7 @@ import (
 
 type Inspection struct {
 	Id                 string          `json:"id"`
+	InspectorId        int             `json:"inspector_id"`
 	AccountNumber      string          `json:"account_number"`
 	ConsumerSurname    string          `json:"consumer_surname"`
 	ConsumerName       string          `json:"consumer_name"`
@@ -29,4 +30,7 @@ type Inspection struct {
 	AccuracyClass      string          `json:"accuracy_class"`
 	TariffsCount       int             `json:"tariffs_count"`
 	DeploymentPlace    string          `json:"deployment_place"`
+	ResolutionFileName string          `json:"resolution_file_name"`
+	CreatedAt          time.Time       `json:"created_at"`
+	UpdatedAt          time.Time       `json:"updated_at"`
 }

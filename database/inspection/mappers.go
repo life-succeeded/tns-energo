@@ -7,6 +7,7 @@ import (
 func mapToDb(inspection domain.Inspection) Inspection {
 	return Inspection{
 		Id:                 inspection.Id,
+		InspectorId:        inspection.InspectorId,
 		AccountNumber:      inspection.AccountNumber,
 		ConsumerSurname:    inspection.ConsumerSurname,
 		ConsumerName:       inspection.ConsumerName,
@@ -28,12 +29,16 @@ func mapToDb(inspection domain.Inspection) Inspection {
 		AccuracyClass:      inspection.AccuracyClass,
 		TariffsCount:       inspection.TariffsCount,
 		DeploymentPlace:    inspection.DeploymentPlace,
+		ResolutionFileName: inspection.ResolutionFileName,
+		CreatedAt:          inspection.CreatedAt,
+		UpdatedAt:          inspection.UpdatedAt,
 	}
 }
 
 func mapToDomain(inspection Inspection) domain.Inspection {
 	return domain.Inspection{
 		Id:                 inspection.Id,
+		InspectorId:        inspection.InspectorId,
 		AccountNumber:      inspection.AccountNumber,
 		ConsumerSurname:    inspection.ConsumerSurname,
 		ConsumerName:       inspection.ConsumerName,
@@ -55,5 +60,17 @@ func mapToDomain(inspection Inspection) domain.Inspection {
 		AccuracyClass:      inspection.AccuracyClass,
 		TariffsCount:       inspection.TariffsCount,
 		DeploymentPlace:    inspection.DeploymentPlace,
+		ResolutionFileName: inspection.ResolutionFileName,
+		CreatedAt:          inspection.CreatedAt,
+		UpdatedAt:          inspection.UpdatedAt,
 	}
+}
+
+func mapSliceToDomain(inspections []Inspection) []domain.Inspection {
+	domainInspections := make([]domain.Inspection, 0, len(inspections))
+	for _, inspection := range inspections {
+		domainInspections = append(domainInspections, mapToDomain(inspection))
+	}
+
+	return domainInspections
 }

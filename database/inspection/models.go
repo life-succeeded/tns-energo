@@ -8,6 +8,7 @@ import (
 
 type Inspection struct {
 	Id                 string          `json:"_id,omitempty" bson:"_id,omitempty"`
+	InspectorId        int             `json:"inspector_id" bson:"inspector_id"`
 	AccountNumber      string          `json:"account_number" bson:"account_number"`
 	ConsumerSurname    string          `json:"consumer_surname" bson:"consumer_surname"`
 	ConsumerName       string          `json:"consumer_name" bson:"consumer_name"`
@@ -29,4 +30,7 @@ type Inspection struct {
 	AccuracyClass      string          `json:"accuracy_class" bson:"accuracy_class"`
 	TariffsCount       int             `json:"tariffs_count" bson:"tariffs_count"`
 	DeploymentPlace    string          `json:"deployment_place" bson:"deployment_place"`
+	ResolutionFileName string          `json:"resolution_file_name" bson:"resolution_file_name"`
+	CreatedAt          time.Time       `json:"created_at" bson:"created_at"`
+	UpdatedAt          time.Time       `json:"updated_at" bson:"updated_at"`
 }

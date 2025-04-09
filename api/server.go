@@ -46,6 +46,7 @@ func (s *ServerBuilder) AddUsers(userService *user.Service) {
 func (s *ServerBuilder) AddInspections(inspectionService *inspection.Service) {
 	subRouter := s.router.SubRouter("/inspections")
 	subRouter.HandlePost("", handlers.InspectHandler(inspectionService)).Use(s.isAuthorized)
+	subRouter.HandleGet("/by-inspector-id/{inspector_id}", handlers.GetInspectionsByInspectorId(inspectionService))
 }
 
 func (s *ServerBuilder) AddRegistry(registryService *registry.Service) {

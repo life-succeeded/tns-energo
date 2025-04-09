@@ -29,12 +29,14 @@ func NewService(settings config.Settings, inspections Storage, documents Documen
 }
 
 func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Inspection) (string, error) {
-	// TODO: обновление по номеру счета, добавить недостающие поля, сохранять название сформированного акта в бд
+	// TODO: обновление по номеру счета, добавить недостающие поля
 	now := time.Now()
 	user, err := s.users.GetLightById(ctx, ctx.Authorize.UserId)
 	if err != nil {
 		return "", fmt.Errorf("could not get user: %w", err)
 	}
+
+	inspection.InspectorId = ctx.Authorize.UserId
 
 	consumerName := fmt.Sprintf("%s %s", inspection.ConsumerSurname, inspection.ConsumerName)
 	if inspection.ConsumerPatronymic != nil {
@@ -118,17 +120,29 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 		return "", fmt.Errorf("could not write: %w", err)
 	}
 
-	url, err := s.documents.Add(ctx, fmt.Sprintf("%s.docx", uuid.New()), buf, buf.Len())
+	inspection.ResolutionFileName = fmt.Sprintf("%s.docx", uuid.New())
+	url, err := s.documents.Add(ctx, inspection.ResolutionFileName, buf, buf.Len())
 	if err != nil {
 		return "", fmt.Errorf("could not create object: %w", err)
 	}
 
+	inspection.CreatedAt = now
+	inspection.UpdatedAt = now
 	err = s.inspections.AddOne(ctx, inspection)
 	if err != nil {
 		return "", fmt.Errorf("could not add inspection: %w", err)
 	}
 
 	return url, nil
+}
+
+func (s *Service) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspectorId int) ([]Inspection, error) {
+	inspections, err := s.inspections.GetByInspectorId(ctx, log, inspectorId)
+	if err != nil {
+		return nil, fmt.Errorf("could not get inspections: %w", err)
+	}
+
+	return inspections, nil
 }
 
 func russianMonth(month time.Month) string {
