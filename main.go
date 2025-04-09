@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"tns-energo/config"
+	"tns-energo/lib/authorize"
 	libconfig "tns-energo/lib/config"
 	"tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
@@ -22,6 +23,9 @@ func main() {
 		log.Errorf("failed to parse config: %v", err)
 		return
 	}
+
+	// нет времени объяснять, суй секрет себе в кэш
+	authorize.CachedSecret = []byte(settings.Auth.Secret)
 
 	mainCtx, cancelMainCtx := ctx.Background().WithCancel()
 	defer cancelMainCtx()

@@ -10,7 +10,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var cachedSecret []byte
+var CachedSecret []byte
 
 type Authorize struct {
 	UserId  int    `json:"user_id"`
@@ -32,7 +32,7 @@ func Parse(token string) (auth Authorize, err error) {
 
 	claims := jwt.MapClaims{}
 	_, err = jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return cachedSecret, nil
+		return CachedSecret, nil
 	})
 	if err != nil {
 		return Authorize{}, fmt.Errorf("could not parse token: %w", err)
@@ -48,7 +48,6 @@ func Parse(token string) (auth Authorize, err error) {
 }
 
 func NewAccessToken(userId int, email string, isAdmin bool, duration time.Duration, secret string) (string, error) {
-	cachedSecret = []byte(secret)
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
@@ -58,7 +57,7 @@ func NewAccessToken(userId int, email string, isAdmin bool, duration time.Durati
 	claims["iat"] = time.Now().Unix()
 	claims["exp"] = time.Now().Add(duration).Unix()
 
-	tokenString, err := token.SignedString(cachedSecret)
+	tokenString, err := token.SignedString(secret)
 	if err != nil {
 		return "", err
 	}
@@ -67,14 +66,13 @@ func NewAccessToken(userId int, email string, isAdmin bool, duration time.Durati
 }
 
 func NewRefreshToken(duration time.Duration, secret string) (string, error) {
-	cachedSecret = []byte(secret)
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
 	claims["iat"] = time.Now().Unix()
 	claims["exp"] = time.Now().Add(duration).Unix()
 
-	tokenString, err := token.SignedString(cachedSecret)
+	tokenString, err := token.SignedString(secret)
 	if err != nil {
 		return "", err
 	}
