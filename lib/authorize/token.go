@@ -57,7 +57,7 @@ func NewAccessToken(userId int, email string, isAdmin bool, duration time.Durati
 	claims["iat"] = time.Now().Unix()
 	claims["exp"] = time.Now().Add(duration).Unix()
 
-	tokenString, err := token.SignedString(secret)
+	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
 	}
@@ -72,7 +72,7 @@ func NewRefreshToken(duration time.Duration, secret string) (string, error) {
 	claims["iat"] = time.Now().Unix()
 	claims["exp"] = time.Now().Add(duration).Unix()
 
-	tokenString, err := token.SignedString(secret)
+	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
 	}
