@@ -8,6 +8,7 @@ type Settings struct {
 	Registry    MongoConfig `json:"registry"`
 	Inspections MongoConfig `json:"inspections"`
 	Reports     MongoConfig `json:"reports"`
+	Tasks       MongoConfig `json:"tasks"`
 	Cron        Cron        `json:"cron"`
 }
 

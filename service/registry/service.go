@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 
@@ -13,13 +12,11 @@ import (
 )
 
 type Service struct {
-	settings config.Settings
 	registry Storage
 }
 
-func NewService(settings config.Settings, registry Storage) *Service {
+func NewService(registry Storage) *Service {
 	return &Service{
-		settings: settings,
 		registry: registry,
 	}
 }

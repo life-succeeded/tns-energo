@@ -5,6 +5,7 @@ import (
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/registry"
+	"tns-energo/service/task"
 	"tns-energo/service/user"
 )
 
@@ -25,4 +26,8 @@ type RegistryStorage interface {
 	GetByAccountNumber(ctx libctx.Context, accountNumber string) (registry.Item, error)
 	AddOne(ctx libctx.Context, item registry.Item) error
 	UpdateOne(ctx libctx.Context, item registry.Item) error
+}
+
+type TaskStorage interface {
+	UpdateStatus(ctx libctx.Context, id string, status task.Status) error
 }

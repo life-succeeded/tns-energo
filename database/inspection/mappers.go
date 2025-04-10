@@ -12,6 +12,7 @@ func MapToDb(i domain.Inspection) Inspection {
 	return Inspection{
 		Id:                  i.Id,
 		InspectorId:         i.InspectorId,
+		TaskId:              i.TaskId,
 		AccountNumber:       i.AccountNumber,
 		Consumer:            consumer.MapToDb(i.Consumer),
 		Address:             i.Address,
@@ -38,6 +39,7 @@ func MapToDomain(i Inspection) domain.Inspection {
 	return domain.Inspection{
 		Id:                  i.Id,
 		InspectorId:         i.InspectorId,
+		TaskId:              i.TaskId,
 		AccountNumber:       i.AccountNumber,
 		Consumer:            consumer.MapToDomain(i.Consumer),
 		Address:             i.Address,

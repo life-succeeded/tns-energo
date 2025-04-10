@@ -10,7 +10,8 @@ import (
 	dbinspection "tns-energo/database/inspection"
 	"tns-energo/database/object"
 	dbregistry "tns-energo/database/registry"
-	"tns-energo/database/report"
+	dbreport "tns-energo/database/report"
+	dbtask "tns-energo/database/task"
 	dbuser "tns-energo/database/user"
 	"tns-energo/lib/ctx"
 	"tns-energo/lib/db"
@@ -21,6 +22,7 @@ import (
 	"tns-energo/service/image"
 	"tns-energo/service/inspection"
 	"tns-energo/service/registry"
+	"tns-energo/service/task"
 	"tns-energo/service/user"
 
 	"github.com/jmoiron/sqlx"
@@ -52,6 +54,7 @@ type App struct {
 	imageService      *image.Service
 	analyticsService  *analytics.Service
 	cronService       *cron.Service
+	taskService       *task.Service
 }
 
 func NewApp(mainCtx ctx.Context, log liblog.Logger, settings config.Settings) *App {
@@ -95,7 +98,8 @@ func (a *App) InitServices() (err error) {
 	userStorage := dbuser.NewStorage(a.postgres)
 	inspectionStorage := dbinspection.NewStorage(a.mongo, a.settings.Inspections.Database, a.settings.Inspections.Collection)
 	registryStorage := dbregistry.NewStorage(a.mongo, a.settings.Registry.Database, a.settings.Registry.Collection)
-	reportStorage := report.NewStorage(a.mongo, a.settings.Reports.Database, a.settings.Reports.Collection)
+	reportStorage := dbreport.NewStorage(a.mongo, a.settings.Reports.Database, a.settings.Reports.Collection)
+	taskStorage := dbtask.NewStorage(a.mongo, a.settings.Tasks.Database, a.settings.Tasks.Collection)
 
 	documentCtx, cancelDocumentCtx := context.WithTimeout(a.mainCtx, _databaseTimeout)
 	defer cancelDocumentCtx()
@@ -114,11 +118,12 @@ func (a *App) InitServices() (err error) {
 	}
 
 	a.userService = user.NewService(a.settings, userStorage)
-	a.inspectionService = inspection.NewService(a.settings, inspectionStorage, documentStorage, userStorage, registryStorage)
-	a.registryService = registry.NewService(a.settings, registryStorage)
+	a.inspectionService = inspection.NewService(a.settings, inspectionStorage, documentStorage, userStorage, registryStorage, taskStorage)
+	a.registryService = registry.NewService(registryStorage)
 	a.imageService = image.NewService(imageStorage)
-	a.analyticsService = analytics.NewService(a.settings, reportStorage)
+	a.analyticsService = analytics.NewService(reportStorage)
 	a.cronService = cron.NewService(a.settings, a.analyticsService)
+	a.taskService = task.NewService(taskStorage)
 
 	return nil
 }
@@ -131,6 +136,7 @@ func (a *App) InitServer() {
 	sb.AddRegistry(a.registryService)
 	sb.AddImages(a.imageService)
 	sb.AddAnalytics(a.analyticsService)
+	sb.AddTasks(a.taskService)
 	a.server = sb.Build()
 }
 

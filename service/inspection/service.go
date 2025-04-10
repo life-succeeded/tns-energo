@@ -10,6 +10,7 @@ import (
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/file"
 	"tns-energo/service/registry"
+	"tns-energo/service/task"
 	"tns-energo/service/user"
 
 	"github.com/google/uuid"
@@ -22,15 +23,17 @@ type Service struct {
 	documents   DocumentStorage
 	users       UserStorage
 	registry    RegistryStorage
+	tasks       TaskStorage
 }
 
-func NewService(settings config.Settings, inspections Storage, documents DocumentStorage, users UserStorage, registry RegistryStorage) *Service {
+func NewService(settings config.Settings, inspections Storage, documents DocumentStorage, users UserStorage, registry RegistryStorage, tasks TaskStorage) *Service {
 	return &Service{
 		settings:    settings,
 		inspections: inspections,
 		documents:   documents,
 		users:       users,
 		registry:    registry,
+		tasks:       tasks,
 	}
 }
 
@@ -42,6 +45,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 
 	inspection := Inspection{
 		InspectorId:         ctx.Authorize.UserId,
+		TaskId:              request.TaskId,
 		AccountNumber:       request.AccountNumber,
 		Consumer:            request.Consumer,
 		Address:             request.Address,
@@ -73,14 +77,18 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 		return file.File{}, fmt.Errorf("could not create object: %w", err)
 	}
 
-	inspection.ResolutionFile.URL = url
-
 	now := time.Now()
+	inspection.ResolutionFile.URL = url
 	inspection.CreatedAt = now
 	inspection.UpdatedAt = now
 	err = s.inspections.AddOne(ctx, inspection)
 	if err != nil {
 		return file.File{}, fmt.Errorf("could not add inspection: %w", err)
+	}
+
+	err = s.tasks.UpdateStatus(ctx, request.TaskId, task.Done)
+	if err != nil {
+		return file.File{}, fmt.Errorf("could not update task status: %w", err)
 	}
 
 	item, err := s.registry.GetByAccountNumber(ctx, inspection.AccountNumber)
@@ -146,8 +154,10 @@ func (s *Service) generateAct(inspection Inspection, user user.UserLight) (*byte
 		inspectorName = fmt.Sprintf("%s %s", inspectorName, user.Patronymic)
 	}
 
-	haveAutomaton := "□"
-	noAutomaton := "■"
+	var (
+		haveAutomaton = "□"
+		noAutomaton   = "■"
+	)
 	if inspection.HaveAutomaton {
 		haveAutomaton = "■"
 		noAutomaton = "□"

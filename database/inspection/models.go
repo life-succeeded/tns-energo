@@ -11,6 +11,7 @@ import (
 type Inspection struct {
 	Id                  string            `json:"_id,omitempty" bson:"_id,omitempty"`
 	InspectorId         int               `json:"inspector_id" bson:"inspector_id"`
+	TaskId              string            `json:"task_id" bson:"task_id"`
 	AccountNumber       string            `json:"account_number" bson:"account_number"`
 	Consumer            consumer.Consumer `json:"consumer" bson:"consumer"`
 	Address             string            `json:"address" bson:"address"`

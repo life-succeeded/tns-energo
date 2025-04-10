@@ -3,7 +3,6 @@ package analytics
 import (
 	"fmt"
 	"time"
-	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/file"
@@ -12,14 +11,12 @@ import (
 )
 
 type Service struct {
-	settings config.Settings
-	reports  ReportStorage
+	reports ReportStorage
 }
 
-func NewService(settings config.Settings, reports ReportStorage) *Service {
+func NewService(reports ReportStorage) *Service {
 	return &Service{
-		settings: settings,
-		reports:  reports,
+		reports: reports,
 	}
 }
 

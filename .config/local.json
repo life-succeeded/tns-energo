@@ -33,6 +33,10 @@
     "database": "tns-energo",
     "collection": "reports"
   },
+  "tasks": {
+    "database": "tns-energo",
+    "collection": "tasks"
+  },
   "cron": {
     "daily_report_time": "18:00"
   }

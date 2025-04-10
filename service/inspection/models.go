@@ -11,6 +11,7 @@ import (
 type Inspection struct {
 	Id                  string            `json:"id"`
 	InspectorId         int               `json:"inspector_id"`
+	TaskId              string            `json:"task_id"`
 	AccountNumber       string            `json:"account_number"`
 	Consumer            consumer.Consumer `json:"consumer"`
 	Address             string            `json:"address"`
@@ -33,6 +34,7 @@ type Inspection struct {
 }
 
 type InspectRequest struct {
+	TaskId              string            `json:"task_id"`
 	AccountNumber       string            `json:"account_number"`
 	Consumer            consumer.Consumer `json:"consumer"`
 	Address             string            `json:"address"`
