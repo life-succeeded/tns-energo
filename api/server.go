@@ -64,7 +64,8 @@ func (s *ServerBuilder) AddImages(imageService *image.Service) {
 
 func (s *ServerBuilder) AddAnalytics(analyticsService *analytics.Service) {
 	subRouter := s.router.SubRouter("/analytics")
-	subRouter.HandleGet("/daily/{date}", handlers.GenerateDailyReportHandler(analyticsService))
+	subRouter.HandlePost("/reports/daily/{date}", handlers.GenerateDailyReportHandler(analyticsService))
+	subRouter.HandleGet("/reports", handlers.GetAllReportsHandler(analyticsService))
 }
 
 func (s *ServerBuilder) Build() libserver.Server {

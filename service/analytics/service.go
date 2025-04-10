@@ -31,10 +31,21 @@ func (s *Service) GenerateDailyReport(ctx libctx.Context, log liblog.Logger, dat
 		CreatedAt: time.Now(),
 	}
 
-	err := s.reports.AddOne(ctx, report)
+	id, err := s.reports.AddOne(ctx, report)
 	if err != nil {
 		return Report{}, fmt.Errorf("failed to add daily report: %w", err)
 	}
 
+	report.Id = id
+
 	return report, nil
+}
+
+func (s *Service) GetAllReports(ctx libctx.Context, log liblog.Logger) ([]Report, error) {
+	reports, err := s.reports.GetAll(ctx, log)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all reports: %w", err)
+	}
+
+	return reports, nil
 }

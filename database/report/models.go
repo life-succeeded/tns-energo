@@ -3,6 +3,7 @@ package report
 import "time"
 
 type Report struct {
+	Id        string    `json:"_id,omitempty" bson:"_id,omitempty"`
 	Type      int       `json:"type" bson:"type"`
 	Name      string    `json:"name" bson:"name"`
 	URL       string    `json:"url" bson:"url"`

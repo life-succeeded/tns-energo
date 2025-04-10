@@ -36,3 +36,16 @@ func GenerateDailyReportHandler(analyticsService *analytics.Service) router.Hand
 		return c.WriteJson(http.StatusOK, response)
 	}
 }
+
+func GetAllReportsHandler(analyticsService *analytics.Service) router.Handler {
+	return func(c router.Context) error {
+		log := c.Log()
+
+		response, err := analyticsService.GetAllReports(c.Ctx(), log)
+		if err != nil {
+			log.Errorf("failed to get all reports: %v", err)
+		}
+
+		return c.WriteJson(http.StatusOK, response)
+	}
+}
