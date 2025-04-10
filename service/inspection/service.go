@@ -74,7 +74,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 			AccountNumber: inspection.AccountNumber,
 			Surname:       inspection.Consumer.Surname,
 			Name:          inspection.Consumer.Name,
-			Patronymic:    &inspection.Consumer.Patronymic,
+			Patronymic:    inspection.Consumer.Patronymic,
 			Object:        inspection.Object,
 			HaveAutomaton: inspection.HaveAutomaton,
 			CreatedAt:     now,
@@ -91,7 +91,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 		AccountNumber: inspection.AccountNumber,
 		Surname:       inspection.Consumer.Surname,
 		Name:          inspection.Consumer.Name,
-		Patronymic:    &inspection.Consumer.Patronymic,
+		Patronymic:    inspection.Consumer.Patronymic,
 		Object:        inspection.Object,
 		HaveAutomaton: inspection.HaveAutomaton,
 		CreatedAt:     item.CreatedAt,
@@ -122,14 +122,9 @@ func (s *Service) generateAct(ctx libctx.Context, log liblog.Logger, inspection 
 		consumerName = inspection.Consumer.LegalEntityName
 	}
 
-	inspectorPosition := ""
-	if user.Position != nil {
-		inspectorPosition = *user.Position
-	}
-
 	inspectorName := fmt.Sprintf("%s %s", user.Surname, user.Name)
-	if user.Patronymic != nil {
-		inspectorName = fmt.Sprintf("%s %s", inspectorName, *user.Patronymic)
+	if len(user.Patronymic) != 0 {
+		inspectorName = fmt.Sprintf("%s %s", inspectorName, user.Patronymic)
 	}
 
 	haveAutomaton := "□"
@@ -145,7 +140,7 @@ func (s *Service) generateAct(ctx libctx.Context, log liblog.Logger, inspection 
 		"act_date_month":        russianMonth(inspection.InspectionDate.Month()),
 		"act_date_year":         inspection.InspectionDate.Year(),
 		"consumer_name":         consumerName,
-		"inspector_position":    inspectorPosition,
+		"inspector_position":    user.Position,
 		"inspector_name":        inspectorName,
 		"consumer_agent_name":   consumerName,
 		"account_number":        inspection.AccountNumber,

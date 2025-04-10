@@ -41,17 +41,15 @@ func (s *Service) Register(ctx libctx.Context, log liblog.Logger, request Regist
 		return AuthResponse{}, fmt.Errorf("could not hash password: %w", err)
 	}
 
-	passwordHash := string(rawPasswordHash)
-
 	id, err := s.users.Create(ctx, User{
 		Email:                 request.Email,
 		Surname:               request.Surname,
 		Name:                  request.Name,
 		Patronymic:            request.Patronymic,
 		Position:              request.Position,
-		PasswordHash:          &passwordHash,
-		RefreshToken:          &refreshToken,
-		RefreshTokenExpiresAt: &exp,
+		PasswordHash:          string(rawPasswordHash),
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: exp,
 		RoleId:                InspectorRoleId,
 	})
 	if err != nil {
@@ -81,10 +79,10 @@ func (s *Service) Login(ctx libctx.Context, log liblog.Logger, request LoginRequ
 		return AuthResponse{}, fmt.Errorf("could not create access token: %w", err)
 	}
 
-	if user.RefreshToken != nil && time.Now().Before(*user.RefreshTokenExpiresAt) {
+	if len(user.RefreshToken) != 0 && time.Now().Before(user.RefreshTokenExpiresAt) {
 		return AuthResponse{
 			AccessToken:  accessToken,
-			RefreshToken: *user.RefreshToken,
+			RefreshToken: user.RefreshToken,
 		}, nil
 	}
 
@@ -109,7 +107,7 @@ func (s *Service) RefreshToken(ctx libctx.Context, log liblog.Logger, refreshTok
 		return AuthResponse{}, fmt.Errorf("could not get user by refresh token: %w", err)
 	}
 
-	if time.Now().After(*user.RefreshTokenExpiresAt) {
+	if time.Now().After(user.RefreshTokenExpiresAt) {
 		return AuthResponse{}, fmt.Errorf("refresh token expired")
 	}
 

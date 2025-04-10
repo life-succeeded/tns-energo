@@ -49,11 +49,6 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) e
 			continue
 		}
 
-		patronymic := &row[3]
-		if *patronymic == "" {
-			patronymic = nil
-		}
-
 		haveAutomaton := false
 		if strings.EqualFold(row[5], "+") {
 			haveAutomaton = true
@@ -63,7 +58,7 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) e
 			AccountNumber: row[0],
 			Surname:       row[1],
 			Name:          row[2],
-			Patronymic:    patronymic,
+			Patronymic:    row[3],
 			Object:        row[4],
 			HaveAutomaton: haveAutomaton,
 			CreatedAt:     now,

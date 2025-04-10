@@ -7,7 +7,7 @@ type Item struct {
 	AccountNumber string    `bson:"account_number" json:"account_number"`
 	Surname       string    `bson:"surname" json:"surname"`
 	Name          string    `bson:"name" json:"name"`
-	Patronymic    *string   `bson:"patronymic,omitempty" json:"patronymic,omitempty"`
+	Patronymic    string    `bson:"patronymic" json:"patronymic"`
 	Object        string    `bson:"object" json:"object"`
 	HaveAutomaton bool      `bson:"have_automaton" json:"have_automaton"`
 	CreatedAt     time.Time `bson:"created_at" json:"created_at"`
