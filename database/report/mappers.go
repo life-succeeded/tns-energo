@@ -1,36 +1,35 @@
 package report
 
 import (
+	"tns-energo/database/file"
 	domain "tns-energo/service/analytics"
 )
 
-func mapToDb(r domain.Report) Report {
+func MapToDb(r domain.Report) Report {
 	return Report{
 		Id:        r.Id,
 		Type:      int(r.Type),
-		Name:      r.Name,
-		URL:       r.URL,
+		File:      file.MapToDb(r.File),
 		ForDate:   r.ForDate,
 		CreatedAt: r.CreatedAt,
 	}
 }
 
-func mapToDomain(r Report) domain.Report {
+func MapToDomain(r Report) domain.Report {
 	return domain.Report{
 		Id:        r.Id,
 		Type:      domain.ReportType(r.Type),
-		Name:      r.Name,
-		URL:       r.URL,
+		File:      file.MapToDomain(r.File),
 		ForDate:   r.ForDate,
 		CreatedAt: r.CreatedAt,
 	}
 }
 
-func mapSliceToDomain(reports []Report) []domain.Report {
-	domainReports := make([]domain.Report, 0, len(reports))
+func MapSliceToDomain(reports []Report) []domain.Report {
+	result := make([]domain.Report, 0, len(reports))
 	for _, r := range reports {
-		domainReports = append(domainReports, mapToDomain(r))
+		result = append(result, MapToDomain(r))
 	}
 
-	return domainReports
+	return result
 }

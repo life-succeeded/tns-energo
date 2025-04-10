@@ -59,7 +59,7 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) e
 			Surname:       row[1],
 			Name:          row[2],
 			Patronymic:    row[3],
-			Object:        row[4],
+			Address:       row[4],
 			HaveAutomaton: haveAutomaton,
 			CreatedAt:     now,
 			UpdatedAt:     now,

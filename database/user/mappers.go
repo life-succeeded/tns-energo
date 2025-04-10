@@ -1,44 +1,46 @@
 package user
 
-import "tns-energo/service/user"
+import (
+	domain "tns-energo/service/user"
+)
 
-func mapToDb(user user.User) User {
+func MapToDb(u domain.User) User {
 	return User{
-		Id:                    user.Id,
-		Email:                 user.Email,
-		Surname:               user.Surname,
-		Name:                  user.Name,
-		Patronymic:            user.Patronymic,
-		Position:              user.Position,
-		PasswordHash:          user.PasswordHash,
-		RefreshToken:          user.RefreshToken,
-		RefreshTokenExpiresAt: user.RefreshTokenExpiresAt,
-		RoleId:                user.RoleId,
+		Id:                    u.Id,
+		Email:                 u.Email,
+		Surname:               u.Surname,
+		Name:                  u.Name,
+		Patronymic:            u.Patronymic,
+		Position:              u.Position,
+		PasswordHash:          u.PasswordHash,
+		RefreshToken:          u.RefreshToken,
+		RefreshTokenExpiresAt: u.RefreshTokenExpiresAt,
+		RoleId:                u.RoleId,
 	}
 }
 
-func mapToDomain(dbUser User) user.User {
-	return user.User{
-		Id:                    dbUser.Id,
-		Email:                 dbUser.Email,
-		Surname:               dbUser.Surname,
-		Name:                  dbUser.Name,
-		Patronymic:            dbUser.Patronymic,
-		Position:              dbUser.Position,
-		PasswordHash:          dbUser.PasswordHash,
-		RefreshToken:          dbUser.RefreshToken,
-		RefreshTokenExpiresAt: dbUser.RefreshTokenExpiresAt,
-		RoleId:                dbUser.RoleId,
+func MapToDomain(u User) domain.User {
+	return domain.User{
+		Id:                    u.Id,
+		Email:                 u.Email,
+		Surname:               u.Surname,
+		Name:                  u.Name,
+		Patronymic:            u.Patronymic,
+		Position:              u.Position,
+		PasswordHash:          u.PasswordHash,
+		RefreshToken:          u.RefreshToken,
+		RefreshTokenExpiresAt: u.RefreshTokenExpiresAt,
+		RoleId:                u.RoleId,
 	}
 }
 
-func mapToDomainLight(dbUser User) user.UserLight {
-	return user.UserLight{
-		Id:         dbUser.Id,
-		Email:      dbUser.Email,
-		Surname:    dbUser.Surname,
-		Name:       dbUser.Name,
-		Patronymic: dbUser.Patronymic,
-		Position:   dbUser.Position,
+func MapToDomainLight(u User) domain.UserLight {
+	return domain.UserLight{
+		Id:         u.Id,
+		Email:      u.Email,
+		Surname:    u.Surname,
+		Name:       u.Name,
+		Patronymic: u.Patronymic,
+		Position:   u.Position,
 	}
 }

@@ -1,40 +1,40 @@
 package registry
 
-import "tns-energo/service/registry"
+import domain "tns-energo/service/registry"
 
-func mapToDb(item registry.Item) Item {
+func MapToDb(i domain.Item) Item {
 	return Item{
-		Id:            item.Id,
-		AccountNumber: item.AccountNumber,
-		Surname:       item.Surname,
-		Name:          item.Name,
-		Patronymic:    item.Patronymic,
-		Object:        item.Object,
-		HaveAutomaton: item.HaveAutomaton,
-		CreatedAt:     item.CreatedAt,
-		UpdatedAt:     item.UpdatedAt,
+		Id:            i.Id,
+		AccountNumber: i.AccountNumber,
+		Surname:       i.Surname,
+		Name:          i.Name,
+		Patronymic:    i.Patronymic,
+		Address:       i.Address,
+		HaveAutomaton: i.HaveAutomaton,
+		CreatedAt:     i.CreatedAt,
+		UpdatedAt:     i.UpdatedAt,
 	}
 }
 
-func mapToDomain(item Item) registry.Item {
-	return registry.Item{
-		Id:            item.Id,
-		AccountNumber: item.AccountNumber,
-		Surname:       item.Surname,
-		Name:          item.Name,
-		Patronymic:    item.Patronymic,
-		Object:        item.Object,
-		HaveAutomaton: item.HaveAutomaton,
-		CreatedAt:     item.CreatedAt,
-		UpdatedAt:     item.UpdatedAt,
+func MapToDomain(i Item) domain.Item {
+	return domain.Item{
+		Id:            i.Id,
+		AccountNumber: i.AccountNumber,
+		Surname:       i.Surname,
+		Name:          i.Name,
+		Patronymic:    i.Patronymic,
+		Address:       i.Address,
+		HaveAutomaton: i.HaveAutomaton,
+		CreatedAt:     i.CreatedAt,
+		UpdatedAt:     i.UpdatedAt,
 	}
 }
 
-func mapSliceToDomain(items []Item) []registry.Item {
-	domainItems := make([]registry.Item, 0, len(items))
-	for _, item := range items {
-		domainItems = append(domainItems, mapToDomain(item))
+func MapSliceToDomain(items []Item) []domain.Item {
+	result := make([]domain.Item, 0, len(items))
+	for _, i := range items {
+		result = append(result, MapToDomain(i))
 	}
 
-	return domainItems
+	return result
 }

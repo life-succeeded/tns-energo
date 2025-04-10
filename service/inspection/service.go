@@ -8,6 +8,7 @@ import (
 	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/file"
 	"tns-energo/service/registry"
 	"tns-energo/service/user"
 
@@ -33,25 +34,43 @@ func NewService(settings config.Settings, inspections Storage, documents Documen
 	}
 }
 
-func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Inspection) (ResolutionFile, error) {
+func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request InspectRequest) (file.File, error) {
 	user, err := s.users.GetLightById(ctx, ctx.Authorize.UserId)
 	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not get user: %w", err)
+		return file.File{}, fmt.Errorf("could not get user: %w", err)
 	}
 
-	inspection.InspectorId = ctx.Authorize.UserId
+	inspection := Inspection{
+		InspectorId:         ctx.Authorize.UserId,
+		AccountNumber:       request.AccountNumber,
+		Consumer:            request.Consumer,
+		Address:             request.Address,
+		Resolution:          request.Resolution,
+		Reason:              request.Reason,
+		Method:              request.Method,
+		IsReviewRefused:     request.IsReviewRefused,
+		ActionDate:          request.ActionDate,
+		HaveAutomaton:       request.HaveAutomaton,
+		AutomatonSealNumber: request.AutomatonSealNumber,
+		Images:              request.Images,
+		Device:              request.Device,
+		InspectionDate:      request.InspectionDate,
+		ActNumber:           request.ActNumber,
+		Contract:            request.Contract,
+		SealNumber:          request.SealNumber,
+	}
 
-	buf, err := s.generateAct(ctx, log, inspection, user)
+	buf, err := s.generateAct(inspection, user)
 	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not generate act: %w", err)
+		return file.File{}, fmt.Errorf("could not generate act: %w", err)
 	}
 
-	inspection.ResolutionFile = ResolutionFile{
+	inspection.ResolutionFile = file.File{
 		Name: fmt.Sprintf("%s.docx", uuid.New()),
 	}
 	url, err := s.documents.Add(ctx, inspection.ResolutionFile.Name, buf, buf.Len())
 	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not create object: %w", err)
+		return file.File{}, fmt.Errorf("could not create object: %w", err)
 	}
 
 	inspection.ResolutionFile.URL = url
@@ -61,13 +80,13 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 	inspection.UpdatedAt = now
 	err = s.inspections.AddOne(ctx, inspection)
 	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not add inspection: %w", err)
+		return file.File{}, fmt.Errorf("could not add inspection: %w", err)
 	}
 
 	item, err := s.registry.GetByAccountNumber(ctx, inspection.AccountNumber)
 	if err != nil {
 		if !errors.Is(err, registry.ErrItemNotFound) {
-			return ResolutionFile{}, fmt.Errorf("could not get registry item: %w", err)
+			return file.File{}, fmt.Errorf("could not get registry item: %w", err)
 		}
 
 		addErr := s.registry.AddOne(ctx, registry.Item{
@@ -75,13 +94,13 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 			Surname:       inspection.Consumer.Surname,
 			Name:          inspection.Consumer.Name,
 			Patronymic:    inspection.Consumer.Patronymic,
-			Object:        inspection.Object,
+			Address:       inspection.Address,
 			HaveAutomaton: inspection.HaveAutomaton,
 			CreatedAt:     now,
 			UpdatedAt:     now,
 		})
 		if addErr != nil {
-			return ResolutionFile{}, fmt.Errorf("could not add registry item: %w", err)
+			return file.File{}, fmt.Errorf("could not add registry item: %w", err)
 		}
 
 		return inspection.ResolutionFile, nil
@@ -92,13 +111,13 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, inspection Insp
 		Surname:       inspection.Consumer.Surname,
 		Name:          inspection.Consumer.Name,
 		Patronymic:    inspection.Consumer.Patronymic,
-		Object:        inspection.Object,
+		Address:       inspection.Address,
 		HaveAutomaton: inspection.HaveAutomaton,
 		CreatedAt:     item.CreatedAt,
 		UpdatedAt:     now,
 	})
 	if err != nil {
-		return ResolutionFile{}, fmt.Errorf("could not update registry item: %w", err)
+		return file.File{}, fmt.Errorf("could not update registry item: %w", err)
 	}
 
 	return inspection.ResolutionFile, nil
@@ -113,7 +132,7 @@ func (s *Service) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspec
 	return inspections, nil
 }
 
-func (s *Service) generateAct(ctx libctx.Context, log liblog.Logger, inspection Inspection, user user.UserLight) (*bytes.Buffer, error) {
+func (s *Service) generateAct(inspection Inspection, user user.UserLight) (*bytes.Buffer, error) {
 	consumerName := fmt.Sprintf("%s %s", inspection.Consumer.Surname, inspection.Consumer.Name)
 	if len(inspection.Consumer.Patronymic) != 0 {
 		consumerName = fmt.Sprintf("%s %s", consumerName, inspection.Consumer.Patronymic)
@@ -146,7 +165,7 @@ func (s *Service) generateAct(ctx libctx.Context, log liblog.Logger, inspection 
 		"account_number":        inspection.AccountNumber,
 		"contract_number":       inspection.Contract.Number,
 		"contract_date":         inspection.Contract.Date.Format("02.01.2006"),
-		"object":                inspection.Object,
+		"object":                inspection.Address,
 		"reason":                inspection.Reason,
 		"method":                inspection.Method,
 		"seal_number":           inspection.SealNumber,

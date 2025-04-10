@@ -29,7 +29,7 @@ func (s *Mongo) AddOne(ctx libctx.Context, r domain.Report) (string, error) {
 	result, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
-		InsertOne(ctx, mapToDb(r))
+		InsertOne(ctx, MapToDb(r))
 	if err != nil {
 		return "", err
 	}
@@ -62,5 +62,5 @@ func (s *Mongo) GetAll(ctx libctx.Context, log liblog.Logger) ([]domain.Report, 
 		return nil, err
 	}
 
-	return mapSliceToDomain(reports), nil
+	return MapSliceToDomain(reports), nil
 }

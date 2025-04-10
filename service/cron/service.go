@@ -71,5 +71,5 @@ func (s *Service) dailyReportTask(ctx context.Context, log liblog.Logger) {
 		return
 	}
 
-	log.Debugf("daily report '%s' generated at %v", report.Name, report.CreatedAt)
+	log.Debugf("daily report '%s' generated at %v", report.File.Name, report.CreatedAt)
 }

@@ -26,7 +26,7 @@ func (s *Mongo) AddOne(ctx libctx.Context, inspection inspection.Inspection) err
 	_, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
-		InsertOne(ctx, mapToDb(inspection))
+		InsertOne(ctx, MapToDb(inspection))
 
 	return err
 }
@@ -51,5 +51,5 @@ func (s *Mongo) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspecto
 		return nil, err
 	}
 
-	return mapSliceToDomain(inspections), nil
+	return MapSliceToDomain(inspections), nil
 }

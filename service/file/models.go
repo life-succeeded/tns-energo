@@ -1,6 +1,6 @@
-package image
+package file
 
-type Image struct {
+type File struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
 }

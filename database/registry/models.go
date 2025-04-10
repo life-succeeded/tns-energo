@@ -8,7 +8,7 @@ type Item struct {
 	Surname       string    `bson:"surname" json:"surname"`
 	Name          string    `bson:"name" json:"name"`
 	Patronymic    string    `bson:"patronymic" json:"patronymic"`
-	Object        string    `bson:"object" json:"object"`
+	Address       string    `bson:"address" json:"address"`
 	HaveAutomaton bool      `bson:"have_automaton" json:"have_automaton"`
 	CreatedAt     time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt     time.Time `bson:"updated_at" json:"updated_at"`

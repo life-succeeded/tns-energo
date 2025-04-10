@@ -1,12 +1,14 @@
 package analytics
 
-import "time"
+import (
+	"time"
+	"tns-energo/service/file"
+)
 
 type Report struct {
 	Id        string     `json:"id"`
 	Type      ReportType `json:"type"`
-	Name      string     `json:"name"`
-	URL       string     `json:"url"`
+	File      file.File  `json:"file"`
 	ForDate   time.Time  `json:"for_date"`
 	CreatedAt time.Time  `json:"created_at"`
 }

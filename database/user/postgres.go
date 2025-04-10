@@ -23,7 +23,7 @@ func NewStorage(db *sqlx.DB) *Postgres {
 var createSql string
 
 func (s *Postgres) Create(ctx libctx.Context, user domain.User) (id int, err error) {
-	rows, err := s.db.NamedQueryContext(ctx, createSql, mapToDb(user))
+	rows, err := s.db.NamedQueryContext(ctx, createSql, MapToDb(user))
 	if err != nil {
 		return 0, err
 	}
@@ -54,7 +54,7 @@ func (s *Postgres) GetByEmail(ctx libctx.Context, email string) (domain.User, er
 		return domain.User{}, err
 	}
 
-	return mapToDomain(user), nil
+	return MapToDomain(user), nil
 }
 
 //go:embed sql/get_by_refresh_token.sql
@@ -67,7 +67,7 @@ func (s *Postgres) GetByRefreshToken(ctx libctx.Context, refreshToken string) (d
 		return domain.User{}, err
 	}
 
-	return mapToDomain(user), nil
+	return MapToDomain(user), nil
 }
 
 //go:embed sql/update_refresh_token.sql
@@ -89,5 +89,5 @@ func (s *Postgres) GetLightById(ctx libctx.Context, userId int) (domain.UserLigh
 		return domain.UserLight{}, err
 	}
 
-	return mapToDomainLight(user), nil
+	return MapToDomainLight(user), nil
 }

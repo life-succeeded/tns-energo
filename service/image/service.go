@@ -5,6 +5,7 @@ import (
 	"fmt"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/file"
 
 	"github.com/google/uuid"
 )
@@ -19,14 +20,14 @@ func NewService(images Storage) *Service {
 	}
 }
 
-func (s *Service) Upload(ctx libctx.Context, log liblog.Logger, payload []byte) (Image, error) {
+func (s *Service) Upload(ctx libctx.Context, log liblog.Logger, payload []byte) (file.File, error) {
 	name := fmt.Sprintf("%s.png", uuid.New()) // TODO: указывать расширение в зависимости от типа картинки
 	url, err := s.images.Add(ctx, name, bytes.NewReader(payload), len(payload))
 	if err != nil {
-		return Image{}, fmt.Errorf("failed to upload image: %w", err)
+		return file.File{}, fmt.Errorf("failed to upload image: %w", err)
 	}
 
-	return Image{
+	return file.File{
 		Name: name,
 		URL:  url,
 	}, nil

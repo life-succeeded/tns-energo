@@ -10,7 +10,7 @@ func InspectHandler(inspectionsService *inspection.Service) router.Handler {
 	return func(c router.Context) error {
 		log := c.Log()
 
-		var request inspection.Inspection
+		var request inspection.InspectRequest
 		if err := c.ReadJson(&request); err != nil {
 			log.Errorf("failed to read json: %v", err)
 			return err

@@ -6,6 +6,7 @@ import (
 	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/file"
 
 	"github.com/google/uuid"
 )
@@ -24,9 +25,11 @@ func NewService(settings config.Settings, reports ReportStorage) *Service {
 
 func (s *Service) GenerateDailyReport(ctx libctx.Context, log liblog.Logger, date time.Time) (Report, error) {
 	report := Report{
-		Type:      Daily,
-		Name:      fmt.Sprintf("Daily Report %s.docx", uuid.New()),
-		URL:       "test url",
+		Type: Daily,
+		File: file.File{
+			Name: fmt.Sprintf("Daily Report %s.docx", uuid.New()),
+			URL:  "test url",
+		},
 		ForDate:   date,
 		CreatedAt: time.Now(),
 	}

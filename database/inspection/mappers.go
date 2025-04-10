@@ -1,183 +1,70 @@
 package inspection
 
 import (
-	"tns-energo/service/image"
+	"tns-energo/database/consumer"
+	"tns-energo/database/contract"
+	"tns-energo/database/device"
+	"tns-energo/database/file"
 	domain "tns-energo/service/inspection"
-
-	"github.com/shopspring/decimal"
 )
 
-func mapToDb(inspection domain.Inspection) Inspection {
+func MapToDb(i domain.Inspection) Inspection {
 	return Inspection{
-		Id:                  inspection.Id,
-		InspectorId:         inspection.InspectorId,
-		AccountNumber:       inspection.AccountNumber,
-		Consumer:            mapConsumerToDb(inspection.Consumer),
-		Object:              inspection.Object,
-		Resolution:          int(inspection.Resolution),
-		Reason:              inspection.Reason,
-		Method:              inspection.Method,
-		IsReviewRefused:     inspection.IsReviewRefused,
-		ActionDate:          inspection.ActionDate,
-		HaveAutomaton:       inspection.HaveAutomaton,
-		AutomatonSealNumber: inspection.AutomatonSealNumber,
-		Images:              mapImageSliceToDb(inspection.Images),
-		Device:              mapDeviceToDb(inspection.Device),
-		InspectionDate:      inspection.InspectionDate,
-		ResolutionFile:      mapResolutionFileToDb(inspection.ResolutionFile),
-		ActNumber:           inspection.ActNumber,
-		Contract:            mapContractToDb(inspection.Contract),
-		SealNumber:          inspection.SealNumber,
-		CreatedAt:           inspection.CreatedAt,
-		UpdatedAt:           inspection.UpdatedAt,
+		Id:                  i.Id,
+		InspectorId:         i.InspectorId,
+		AccountNumber:       i.AccountNumber,
+		Consumer:            consumer.MapToDb(i.Consumer),
+		Address:             i.Address,
+		Resolution:          int(i.Resolution),
+		Reason:              i.Reason,
+		Method:              i.Method,
+		IsReviewRefused:     i.IsReviewRefused,
+		ActionDate:          i.ActionDate,
+		HaveAutomaton:       i.HaveAutomaton,
+		AutomatonSealNumber: i.AutomatonSealNumber,
+		Images:              file.MapSliceToDb(i.Images),
+		Device:              device.MapToDb(i.Device),
+		InspectionDate:      i.InspectionDate,
+		ResolutionFile:      file.MapToDb(i.ResolutionFile),
+		ActNumber:           i.ActNumber,
+		Contract:            contract.MapToDb(i.Contract),
+		SealNumber:          i.SealNumber,
+		CreatedAt:           i.CreatedAt,
+		UpdatedAt:           i.UpdatedAt,
 	}
 }
 
-func mapConsumerToDb(consumer domain.Consumer) Consumer {
-	return Consumer{
-		Surname:         consumer.Surname,
-		Name:            consumer.Name,
-		Patronymic:      consumer.Patronymic,
-		LegalEntityName: consumer.LegalEntityName,
-	}
-}
-
-func mapImageToDb(image image.Image) Image {
-	return Image{
-		Name: image.Name,
-		URL:  image.URL,
-	}
-}
-
-func mapImageSliceToDb(images []image.Image) []Image {
-	result := make([]Image, 0, len(images))
-	for _, img := range images {
-		result = append(result, mapImageToDb(img))
-	}
-
-	return result
-}
-
-func mapDeviceToDb(device domain.Device) Device {
-	return Device{
-		Type:                device.Type,
-		Number:              device.Number,
-		Voltage:             device.Voltage,
-		Amperage:            device.Amperage,
-		AccuracyClass:       device.AccuracyClass,
-		TariffsCount:        device.TariffsCount,
-		DeploymentPlace:     device.DeploymentPlace,
-		ValencyBeforeDot:    device.ValencyBeforeDot,
-		ValencyAfterDot:     device.ValencyAfterDot,
-		ManufactureYear:     device.ManufactureYear,
-		VerificationQuarter: device.VerificationQuarter,
-		VerificationYear:    device.VerificationYear,
-		Value:               device.Value.String(),
-	}
-}
-
-func mapContractToDb(contract domain.Contract) Contract {
-	return Contract{
-		Number: contract.Number,
-		Date:   contract.Date,
-	}
-}
-
-func mapResolutionFileToDb(file domain.ResolutionFile) ResolutionFile {
-	return ResolutionFile{
-		Name: file.Name,
-		URL:  file.URL,
-	}
-}
-
-func mapToDomain(inspection Inspection) domain.Inspection {
+func MapToDomain(i Inspection) domain.Inspection {
 	return domain.Inspection{
-		Id:                  inspection.Id,
-		InspectorId:         inspection.InspectorId,
-		AccountNumber:       inspection.AccountNumber,
-		Consumer:            mapConsumerToDomain(inspection.Consumer),
-		Object:              inspection.Object,
-		Resolution:          domain.Resolution(inspection.Resolution),
-		Reason:              inspection.Reason,
-		Method:              inspection.Method,
-		IsReviewRefused:     inspection.IsReviewRefused,
-		ActionDate:          inspection.ActionDate,
-		HaveAutomaton:       inspection.HaveAutomaton,
-		AutomatonSealNumber: inspection.AutomatonSealNumber,
-		Images:              mapImageSliceToDomain(inspection.Images),
-		Device:              mapDeviceToDomain(inspection.Device),
-		InspectionDate:      inspection.InspectionDate,
-		ResolutionFile:      mapResolutionFileToDomain(inspection.ResolutionFile),
-		ActNumber:           inspection.ActNumber,
-		Contract:            mapContractToDomain(inspection.Contract),
-		SealNumber:          inspection.SealNumber,
-		CreatedAt:           inspection.CreatedAt,
-		UpdatedAt:           inspection.UpdatedAt,
+		Id:                  i.Id,
+		InspectorId:         i.InspectorId,
+		AccountNumber:       i.AccountNumber,
+		Consumer:            consumer.MapToDomain(i.Consumer),
+		Address:             i.Address,
+		Resolution:          domain.Resolution(i.Resolution),
+		Reason:              i.Reason,
+		Method:              i.Method,
+		IsReviewRefused:     i.IsReviewRefused,
+		ActionDate:          i.ActionDate,
+		HaveAutomaton:       i.HaveAutomaton,
+		AutomatonSealNumber: i.AutomatonSealNumber,
+		Images:              file.MapSliceToDomain(i.Images),
+		Device:              device.MapToDomain(i.Device),
+		InspectionDate:      i.InspectionDate,
+		ResolutionFile:      file.MapToDomain(i.ResolutionFile),
+		ActNumber:           i.ActNumber,
+		Contract:            contract.MapToDomain(i.Contract),
+		SealNumber:          i.SealNumber,
+		CreatedAt:           i.CreatedAt,
+		UpdatedAt:           i.UpdatedAt,
 	}
 }
 
-func mapSliceToDomain(inspections []Inspection) []domain.Inspection {
-	domainInspections := make([]domain.Inspection, 0, len(inspections))
-	for _, inspection := range inspections {
-		domainInspections = append(domainInspections, mapToDomain(inspection))
-	}
-
-	return domainInspections
-}
-
-func mapConsumerToDomain(consumer Consumer) domain.Consumer {
-	return domain.Consumer{
-		Surname:         consumer.Surname,
-		Name:            consumer.Name,
-		Patronymic:      consumer.Patronymic,
-		LegalEntityName: consumer.LegalEntityName,
-	}
-}
-
-func mapImageToDomain(img Image) image.Image {
-	return image.Image{
-		Name: img.Name,
-		URL:  img.URL,
-	}
-}
-
-func mapImageSliceToDomain(images []Image) []image.Image {
-	result := make([]image.Image, 0, len(images))
-	for _, img := range images {
-		result = append(result, mapImageToDomain(img))
+func MapSliceToDomain(inspections []Inspection) []domain.Inspection {
+	result := make([]domain.Inspection, 0, len(inspections))
+	for _, i := range inspections {
+		result = append(result, MapToDomain(i))
 	}
 
 	return result
-}
-
-func mapDeviceToDomain(device Device) domain.Device {
-	return domain.Device{
-		Type:                device.Type,
-		Number:              device.Number,
-		Voltage:             device.Voltage,
-		Amperage:            device.Amperage,
-		AccuracyClass:       device.AccuracyClass,
-		TariffsCount:        device.TariffsCount,
-		DeploymentPlace:     device.DeploymentPlace,
-		ValencyBeforeDot:    device.ValencyBeforeDot,
-		ValencyAfterDot:     device.ValencyAfterDot,
-		ManufactureYear:     device.ManufactureYear,
-		VerificationQuarter: device.VerificationQuarter,
-		VerificationYear:    device.VerificationYear,
-		Value:               decimal.RequireFromString(device.Value),
-	}
-}
-
-func mapContractToDomain(contract Contract) domain.Contract {
-	return domain.Contract{
-		Number: contract.Number,
-		Date:   contract.Date,
-	}
-}
-
-func mapResolutionFileToDomain(file ResolutionFile) domain.ResolutionFile {
-	return domain.ResolutionFile{
-		Name: file.Name,
-		URL:  file.URL,
-	}
 }

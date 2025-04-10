@@ -27,7 +27,7 @@ func (s *Mongo) AddOne(ctx libctx.Context, item registry.Item) error {
 	_, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
-		InsertOne(ctx, mapToDb(item))
+		InsertOne(ctx, MapToDb(item))
 
 	return err
 }
@@ -35,7 +35,7 @@ func (s *Mongo) AddOne(ctx libctx.Context, item registry.Item) error {
 func (s *Mongo) AddMany(ctx libctx.Context, items []registry.Item) error {
 	docs := make([]interface{}, 0, len(items))
 	for _, item := range items {
-		docs = append(docs, mapToDb(item))
+		docs = append(docs, MapToDb(item))
 	}
 
 	_, err := s.cli.
@@ -58,7 +58,7 @@ func (s *Mongo) GetByAccountNumber(ctx libctx.Context, accountNumber string) (re
 		return registry.Item{}, registry.ErrItemNotFound
 	}
 
-	return mapToDomain(item), err
+	return MapToDomain(item), err
 }
 
 func (s *Mongo) GetByAccountNumberRegular(ctx libctx.Context, log liblog.Logger, accountNumber string) ([]registry.Item, error) {
@@ -81,14 +81,14 @@ func (s *Mongo) GetByAccountNumberRegular(ctx libctx.Context, log liblog.Logger,
 		return nil, err
 	}
 
-	return mapSliceToDomain(items), nil
+	return MapSliceToDomain(items), nil
 }
 
 func (s *Mongo) UpdateOne(ctx libctx.Context, item registry.Item) error {
 	_, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
-		UpdateOne(ctx, bson.M{"account_number": item.AccountNumber}, bson.M{"$set": mapToDb(item)})
+		UpdateOne(ctx, bson.M{"account_number": item.AccountNumber}, bson.M{"$set": MapToDb(item)})
 
 	return err
 }
