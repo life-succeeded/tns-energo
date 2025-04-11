@@ -2,7 +2,7 @@ name: Docker Build & Deploy
 
 on:
   push:
-    branches: [master]
+    branches: [ master ]
 
 env:
   CONTAINER_NAME: tns-energo
@@ -11,7 +11,7 @@ env:
 jobs:
   deploy:
     runs-on: self-hosted
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,26 +24,36 @@ jobs:
         run: |
           docker build -t $CONTAINER_NAME:${{ env.SHORT_SHA }} .
 
-      - name: Stop and remove old container if exists
+      - name: Stop and remove containers using old images of the same container (excluding current)
         run: |
-          if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-            docker stop $CONTAINER_NAME
-          fi
-          if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
-            docker rm $CONTAINER_NAME
-          fi
+          current_image_id=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | \
+            grep "^$CONTAINER_NAME:${{ env.SHORT_SHA }}" | awk '{ print $2 }')
+          
+          # Get containers using $CONTAINER_NAME images excluding current SHA
+          docker ps -a --format '{{.ID}} {{.Image}}' | while read container_id image_ref; do
+            image_id=$(docker inspect --format='{{.Image}}' "$container_id")
+            if [ "$image_id" != "$current_image_id" ]; then
+              echo "Stopping and removing container $container_id using old image $image_id"
+              docker stop "$container_id" || true
+              docker rm "$container_id" || true
+            fi
+          done
 
       - name: Run new container
         run: |
-          docker run -d --name $CONTAINER_NAME --network=backend -e ENV=prod -p $CONTAINER_PORT:$CONTAINER_PORT $CONTAINER_NAME:${{ env.SHORT_SHA }}
+          docker run -d --name $CONTAINER_NAME-${{ env.SHORT_SHA }} --network=backend -e ENV=prod -p $CONTAINER_PORT:$CONTAINER_PORT $CONTAINER_NAME:${{ env.SHORT_SHA }}
 
       - name: Remove old images of the same container (keep current)
         run: |
+          current_image_id=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | \
+            grep "^$CONTAINER_NAME:${{ env.SHORT_SHA }}" | awk '{ print $2 }')
+          
           docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | \
           grep "^$CONTAINER_NAME:" | \
           grep -v ":${{ env.SHORT_SHA }}" | \
           awk '{ print $2 }' | \
-          xargs -r docker rmi
+          grep -v "$current_image_id" | \
+          xargs -r docker rmi -f
 
       - name: Remove all stopped containers with same name
         run: |
