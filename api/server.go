@@ -36,8 +36,8 @@ func (s *ServerBuilder) AddDebug() {
 
 func (s *ServerBuilder) AddInspections(inspectionService *inspection.Service) {
 	subRouter := s.router.SubRouter("/inspections")
-	subRouter.HandlePost("", handlers.InspectHandler(inspectionService))
-	subRouter.HandleGet("/by-inspector-id/{inspector_id}", handlers.GetInspectionsByInspectorId(inspectionService))
+	subRouter.HandlePost("/universal", handlers.InspectUniversalHandler(inspectionService))
+	subRouter.HandleGet("/by-brigade-id/{brigade_id}", handlers.GetInspectionsByBrigadeId(inspectionService))
 }
 
 func (s *ServerBuilder) AddRegistry(registryService *registry.Service) {
@@ -61,7 +61,7 @@ func (s *ServerBuilder) AddAnalytics(analyticsService *analytics.Service) {
 func (s *ServerBuilder) AddTasks(taskService *task.Service) {
 	subRouter := s.router.SubRouter("/tasks")
 	subRouter.HandlePost("", handlers.AddTaskHandler(taskService))
-	subRouter.HandleGet("/by-inspector-id/{inspector_id}", handlers.GetTasksByInspectorId(taskService))
+	subRouter.HandleGet("/by-brigade-id/{brigade_id}", handlers.GetTasksByBrigadeId(taskService))
 	subRouter.HandlePatch("/{task_id}/status", handlers.UpdateTaskStatusHandler(taskService))
 }
 

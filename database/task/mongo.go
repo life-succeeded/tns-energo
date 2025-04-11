@@ -42,11 +42,11 @@ func (s *Mongo) AddOne(ctx libctx.Context, t task.Task) (string, error) {
 	return id.Hex(), nil
 }
 
-func (s *Mongo) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspectorId int) ([]task.Task, error) {
+func (s *Mongo) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]task.Task, error) {
 	cursor, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
-		Find(ctx, bson.M{"inspector_id": inspectorId})
+		Find(ctx, bson.M{"brigade_id": brigadeId})
 	if err != nil {
 		return nil, err
 	}

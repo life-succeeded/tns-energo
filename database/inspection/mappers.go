@@ -2,7 +2,6 @@ package inspection
 
 import (
 	"tns-energo/database/consumer"
-	"tns-energo/database/contract"
 	"tns-energo/database/device"
 	"tns-energo/database/file"
 	domain "tns-energo/service/inspection"
@@ -11,54 +10,50 @@ import (
 func MapToDb(i domain.Inspection) Inspection {
 	return Inspection{
 		Id:                  i.Id,
-		InspectorId:         i.InspectorId,
 		TaskId:              i.TaskId,
-		AccountNumber:       i.AccountNumber,
-		Consumer:            consumer.MapToDb(i.Consumer),
-		Address:             i.Address,
+		BrigadeId:           i.BrigadeId,
+		ActNumber:           i.ActNumber,
 		Resolution:          int(i.Resolution),
-		Reason:              i.Reason,
-		Method:              i.Method,
-		IsReviewRefused:     i.IsReviewRefused,
-		ActionDate:          i.ActionDate,
+		Address:             i.Address,
+		Consumer:            consumer.MapToDb(i.Consumer),
 		HaveAutomaton:       i.HaveAutomaton,
-		AutomatonSealNumber: i.AutomatonSealNumber,
-		Images:              file.MapSliceToDb(i.Images),
+		AccountNumber:       i.AccountNumber,
+		IsIncompletePayment: i.IsIncompletePayment,
+		OtherReason:         i.OtherReason,
+		MethodBy:            int(i.MethodBy),
+		Method:              i.Method,
 		Device:              device.MapToDb(i.Device),
+		ReasonType:          int(i.ReasonType),
+		Reason:              i.Reason,
+		ActCopies:           i.ActCopies,
+		Images:              file.MapSliceToDb(i.Images),
 		InspectionDate:      i.InspectionDate,
 		ResolutionFile:      file.MapToDb(i.ResolutionFile),
-		ActNumber:           i.ActNumber,
-		Contract:            contract.MapToDb(i.Contract),
-		SealNumber:          i.SealNumber,
-		CreatedAt:           i.CreatedAt,
-		UpdatedAt:           i.UpdatedAt,
 	}
 }
 
 func MapToDomain(i Inspection) domain.Inspection {
 	return domain.Inspection{
 		Id:                  i.Id,
-		InspectorId:         i.InspectorId,
 		TaskId:              i.TaskId,
-		AccountNumber:       i.AccountNumber,
-		Consumer:            consumer.MapToDomain(i.Consumer),
-		Address:             i.Address,
+		BrigadeId:           i.BrigadeId,
+		ActNumber:           i.ActNumber,
 		Resolution:          domain.Resolution(i.Resolution),
-		Reason:              i.Reason,
-		Method:              i.Method,
-		IsReviewRefused:     i.IsReviewRefused,
-		ActionDate:          i.ActionDate,
+		Address:             i.Address,
+		Consumer:            consumer.MapToDomain(i.Consumer),
 		HaveAutomaton:       i.HaveAutomaton,
-		AutomatonSealNumber: i.AutomatonSealNumber,
-		Images:              file.MapSliceToDomain(i.Images),
+		AccountNumber:       i.AccountNumber,
+		IsIncompletePayment: i.IsIncompletePayment,
+		OtherReason:         i.OtherReason,
+		MethodBy:            domain.MethodBy(i.MethodBy),
+		Method:              i.Method,
 		Device:              device.MapToDomain(i.Device),
+		ReasonType:          domain.ReasonType(i.ReasonType),
+		Reason:              i.Reason,
+		ActCopies:           i.ActCopies,
+		Images:              file.MapSliceToDomain(i.Images),
 		InspectionDate:      i.InspectionDate,
 		ResolutionFile:      file.MapToDomain(i.ResolutionFile),
-		ActNumber:           i.ActNumber,
-		Contract:            contract.MapToDomain(i.Contract),
-		SealNumber:          i.SealNumber,
-		CreatedAt:           i.CreatedAt,
-		UpdatedAt:           i.UpdatedAt,
 	}
 }
 

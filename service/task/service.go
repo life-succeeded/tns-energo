@@ -21,7 +21,7 @@ func (s *Service) AddOne(ctx libctx.Context, log liblog.Logger, request AddOneRe
 	var (
 		now  = time.Now()
 		task = Task{
-			InspectorId:   request.InspectorId,
+			BrigadeId:     request.BrigadeId,
 			Address:       request.Address,
 			VisitDate:     request.VisitDate,
 			Status:        Planned,
@@ -43,10 +43,10 @@ func (s *Service) AddOne(ctx libctx.Context, log liblog.Logger, request AddOneRe
 	return task, nil
 }
 
-func (s *Service) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspectorId int) ([]Task, error) {
-	tasks, err := s.tasks.GetByInspectorId(ctx, log, inspectorId)
+func (s *Service) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]Task, error) {
+	tasks, err := s.tasks.GetByBrigadeId(ctx, log, brigadeId)
 	if err != nil {
-		return nil, fmt.Errorf("could not get tasks by inspector id: %w", err)
+		return nil, fmt.Errorf("could not get tasks by brigade id: %w", err)
 	}
 
 	return tasks, nil

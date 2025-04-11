@@ -3,10 +3,13 @@ package inspection
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"time"
 	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/brigade"
+	"tns-energo/service/device"
 	"tns-energo/service/file"
 	"tns-energo/service/task"
 
@@ -20,41 +23,49 @@ type Service struct {
 	documents   DocumentStorage
 	registry    RegistryStorage
 	tasks       TaskStorage
+	brigades    BrigadeStorage
 }
 
-func NewService(settings config.Settings, inspections Storage, documents DocumentStorage, registry RegistryStorage, tasks TaskStorage) *Service {
+func NewService(settings config.Settings, inspections Storage, documents DocumentStorage, registry RegistryStorage, tasks TaskStorage, brigades BrigadeStorage) *Service {
 	return &Service{
 		settings:    settings,
 		inspections: inspections,
 		documents:   documents,
 		registry:    registry,
 		tasks:       tasks,
+		brigades:    brigades,
 	}
 }
 
-func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request InspectRequest) (file.File, error) {
+func (s *Service) InspectUniversal(ctx libctx.Context, log liblog.Logger, request InspectUniversalRequest) (file.File, error) {
+	now := time.Now()
 	inspection := Inspection{
-		InspectorId:         ctx.Authorize.UserId,
 		TaskId:              request.TaskId,
-		AccountNumber:       request.AccountNumber,
-		Consumer:            request.Consumer,
-		Address:             request.Address,
-		Resolution:          request.Resolution,
-		Reason:              request.Reason,
-		Method:              request.Method,
-		IsReviewRefused:     request.IsReviewRefused,
-		ActionDate:          request.ActionDate,
-		HaveAutomaton:       request.HaveAutomaton,
-		AutomatonSealNumber: request.AutomatonSealNumber,
-		Images:              request.Images,
-		Device:              request.Device,
-		InspectionDate:      request.InspectionDate,
+		BrigadeId:           request.BrigadeId,
 		ActNumber:           request.ActNumber,
-		Contract:            request.Contract,
-		SealNumber:          request.SealNumber,
+		Resolution:          request.Resolution,
+		Address:             request.Address,
+		Consumer:            request.Consumer,
+		HaveAutomaton:       request.HaveAutomaton,
+		AccountNumber:       request.AccountNumber,
+		IsIncompletePayment: request.IsIncompletePayment,
+		OtherReason:         request.OtherReason,
+		MethodBy:            request.MethodBy,
+		Method:              request.Method,
+		Device:              request.Device,
+		ReasonType:          request.ReasonType,
+		Reason:              request.Reason,
+		ActCopies:           request.ActCopies,
+		Images:              request.Images,
+		InspectionDate:      now,
 	}
 
-	buf, err := s.generateAct(inspection)
+	brig, err := s.brigades.GetById(ctx, inspection.BrigadeId)
+	if err != nil {
+		return file.File{}, fmt.Errorf("could not find brigade: %w", err)
+	}
+
+	buf, err := s.generateAct(inspection, brig)
 	if err != nil {
 		return file.File{}, fmt.Errorf("could not generate act: %w", err)
 	}
@@ -67,10 +78,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 		return file.File{}, fmt.Errorf("could not create object: %w", err)
 	}
 
-	now := time.Now()
 	inspection.ResolutionFile.URL = url
-	inspection.CreatedAt = now
-	inspection.UpdatedAt = now
 	err = s.inspections.AddOne(ctx, inspection)
 	if err != nil {
 		return file.File{}, fmt.Errorf("could not add inspection: %w", err)
@@ -113,8 +121,8 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 	return inspection.ResolutionFile, nil
 }
 
-func (s *Service) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspectorId int) ([]Inspection, error) {
-	inspections, err := s.inspections.GetByInspectorId(ctx, log, inspectorId)
+func (s *Service) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]Inspection, error) {
+	inspections, err := s.inspections.GetByBrigadeId(ctx, log, brigadeId)
 	if err != nil {
 		return nil, fmt.Errorf("could not get inspections: %w", err)
 	}
@@ -122,59 +130,134 @@ func (s *Service) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspec
 	return inspections, nil
 }
 
-func (s *Service) generateAct(inspection Inspection) (*bytes.Buffer, error) {
-	consumerName := fmt.Sprintf("%s %s", inspection.Consumer.Surname, inspection.Consumer.Name)
-	if len(inspection.Consumer.Patronymic) != 0 {
-		consumerName = fmt.Sprintf("%s %s", consumerName, inspection.Consumer.Patronymic)
-	}
-	if len(consumerName) == 0 {
-		consumerName = inspection.Consumer.LegalEntityName
+func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*bytes.Buffer, error) {
+	isLimitation := "■"
+	isResumption := "□"
+	if inspection.Resolution == ResumedResolution {
+		isLimitation = "□"
+		isResumption = "■"
 	}
 
-	var (
-		haveAutomaton = "□"
-		noAutomaton   = "■"
-	)
+	consumerFIO := fmt.Sprintf("%s %s", inspection.Consumer.Surname, inspection.Consumer.Name)
+	if len(inspection.Consumer.Patronymic) != 0 {
+		consumerFIO = fmt.Sprintf("%s %s", consumerFIO, inspection.Consumer.Patronymic)
+	}
+
+	haveAutomaton := "□"
+	noAutomaton := "■"
 	if inspection.HaveAutomaton {
 		haveAutomaton = "■"
 		noAutomaton = "□"
 	}
 
+	isIncomplete := "□"
+	if inspection.IsIncompletePayment {
+		isIncomplete = "■"
+	}
+
+	isOtherReason := "□"
+	if len(inspection.OtherReason) != 0 {
+		isOtherReason = "■"
+	}
+
+	isByConsumer := "□"
+	isByInspector := "■"
+	if inspection.MethodBy == Consumer {
+		isByConsumer = "■"
+		isByInspector = "□"
+	}
+
+	isEnergyLimited := "□"
+	isEnergyStopped := "□"
+	isEnergyResumed := "□"
+	switch inspection.Resolution {
+	case LimitedResolution:
+		isEnergyLimited = "■"
+	case StoppedResolution:
+		isEnergyStopped = "■"
+	case ResumedResolution:
+		isEnergyResumed = "■"
+	}
+
+	isInside := "□"
+	isOutside := "□"
+	switch inspection.Device.DeploymentPlace {
+	case device.Inside:
+		isInside = "■"
+	case device.Outside:
+		isOutside = "■"
+	}
+
+	seals := make([]string, 0, len(inspection.Device.Seals))
+	for _, seal := range inspection.Device.Seals {
+		seals = append(seals, fmt.Sprintf("№%s %s", seal.Number, seal.Place))
+	}
+
+	isConsumerLimited := "□"
+	isInspectorLimited := "□"
+	isNotIntroduced := "□"
+	switch inspection.ReasonType {
+	case NotIntroduced:
+		isNotIntroduced = "■"
+	case ConsumerLimited:
+		isConsumerLimited = "■"
+	case InspectorLimited:
+		isInspectorLimited = "■"
+	}
+
+	firstInspector := fmt.Sprintf("%s %s.", brig.FirstInspector.Surname, string([]rune(brig.FirstInspector.Name)[0]))
+	if len(brig.FirstInspector.Patronymic) != 0 {
+		firstInspector = fmt.Sprintf("%s%s.", firstInspector, string([]rune(brig.FirstInspector.Patronymic)[0]))
+	}
+
+	secondInspector := fmt.Sprintf("%s %s.", brig.SecondInspector.Surname, string([]rune(brig.SecondInspector.Name)[0]))
+	if len(brig.SecondInspector.Patronymic) != 0 {
+		secondInspector = fmt.Sprintf("%s%s.", secondInspector, string([]rune(brig.SecondInspector.Patronymic)[0]))
+	}
+
 	replaceMap := docx.PlaceholderMap{
-		"act_number":            inspection.ActNumber,
-		"act_date_day":          inspection.InspectionDate.Day(),
-		"act_date_month":        russianMonth(inspection.InspectionDate.Month()),
-		"act_date_year":         inspection.InspectionDate.Year(),
-		"consumer_name":         consumerName,
-		"consumer_agent_name":   consumerName,
-		"account_number":        inspection.AccountNumber,
-		"contract_number":       inspection.Contract.Number,
-		"contract_date":         inspection.Contract.Date.Format("02.01.2006"),
-		"object":                inspection.Address,
-		"reason":                inspection.Reason,
-		"method":                inspection.Method,
-		"seal_number":           inspection.SealNumber,
-		"action_date_hours":     inspection.ActionDate.Hour(),
-		"action_date_minutes":   inspection.ActionDate.Minute(),
-		"action_date_day":       inspection.ActionDate.Day(),
-		"action_date_month":     russianMonth(inspection.ActionDate.Month()),
-		"action_date_year":      inspection.ActionDate.Year(),
-		"have_automaton":        haveAutomaton,
-		"no_automaton":          noAutomaton,
-		"automaton_seal_number": inspection.AutomatonSealNumber,
-		"device_type":           inspection.Device.Type,
-		"device_number":         inspection.Device.Number,
-		"voltage":               inspection.Device.Voltage,
-		"amperage":              inspection.Device.Amperage,
-		"valency_before_dot":    inspection.Device.ValencyBeforeDot,
-		"valency_after_dot":     inspection.Device.ValencyAfterDot,
-		"manufacture_year":      inspection.Device.ManufactureYear,
-		"device_value":          inspection.Device.Value,
-		"verification_quarter":  inspection.Device.VerificationQuarter,
-		"verification_year":     inspection.Device.VerificationYear,
-		"accuracy_class":        inspection.Device.AccuracyClass,
-		"tariffs_count":         inspection.Device.TariffsCount,
-		"deployment_place":      inspection.Device.DeploymentPlace,
+		"act_number":               inspection.ActNumber,
+		"is_limitation":            isLimitation,
+		"is_resumption":            isResumption,
+		"act_day":                  inspection.InspectionDate.Format("02"),
+		"act_month":                russianMonth(inspection.InspectionDate.Month()),
+		"act_year":                 inspection.InspectionDate.Year(),
+		"act_hour":                 inspection.InspectionDate.Format("15"),
+		"act_minute":               inspection.InspectionDate.Format("04"),
+		"act_place":                inspection.Address,
+		"consumer_fio":             consumerFIO,
+		"address":                  inspection.Address,
+		"have_automaton":           haveAutomaton,
+		"no_automaton":             noAutomaton,
+		"account_number":           inspection.AccountNumber,
+		"is_incomplete_payment":    isIncomplete,
+		"is_other_reason":          isOtherReason,
+		"other_reason":             inspection.OtherReason,
+		"is_energy_limited":        isEnergyLimited,
+		"is_energy_stopped":        isEnergyStopped,
+		"is_energy_resumed":        isEnergyResumed,
+		"energy_hour":              inspection.InspectionDate.Format("15"),
+		"energy_minute":            inspection.InspectionDate.Format("04"),
+		"energy_day":               inspection.InspectionDate.Format("02"),
+		"energy_month":             russianMonth(inspection.InspectionDate.Month()),
+		"energy_year":              inspection.InspectionDate.Year(),
+		"is_by_consumer":           isByConsumer,
+		"is_by_inspector":          isByInspector,
+		"method":                   inspection.Method,
+		"is_inside":                isInside,
+		"is_outside":               isOutside,
+		"other_place":              inspection.Device.OtherPlace,
+		"device_type":              inspection.Device.Type,
+		"device_number":            inspection.Device.Number,
+		"device_value":             inspection.Device.Value,
+		"seals":                    strings.Join(seals, ", "),
+		"is_consumer_limited":      isConsumerLimited,
+		"is_inspector_limited":     isInspectorLimited,
+		"is_not_introduced":        isNotIntroduced,
+		"is_not_introduced_reason": inspection.Reason,
+		"act_copies":               inspection.ActCopies,
+		"inspector1_initials":      firstInspector,
+		"inspector2_initials":      secondInspector,
 	}
 
 	doc, err := docx.Open(s.settings.Templates.Universal)

@@ -60,12 +60,6 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) e
 			addressSlice = append(addressSlice, row[6])
 		}
 
-		deploymentDate, err := time.Parse("01-02-06", row[15])
-		if err != nil {
-			log.Errorf("could not parse deployment date: %v", err)
-			continue
-		}
-
 		items = append(items, Item{
 			Address: strings.Join(addressSlice, ", "),
 			OldDevice: device.Device{
@@ -73,9 +67,8 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) e
 				Number: row[11],
 			},
 			NewDevice: device.Device{
-				Type:           row[13],
-				Number:         row[14],
-				DeploymentDate: deploymentDate,
+				Type:   row[13],
+				Number: row[14],
 			},
 			CreatedAt: now,
 			UpdatedAt: now,

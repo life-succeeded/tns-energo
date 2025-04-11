@@ -103,7 +103,7 @@ func (a *App) InitServices() (err error) {
 		return fmt.Errorf("could not create image storage: %w", err)
 	}
 
-	a.inspectionService = inspection.NewService(a.settings, inspectionStorage, documentStorage, registryStorage, taskStorage)
+	a.inspectionService = inspection.NewService(a.settings, inspectionStorage, documentStorage, registryStorage, taskStorage, brigadeStorage)
 	a.registryService = registry.NewService(registryStorage)
 	a.imageService = image.NewService(imageStorage)
 	a.analyticsService = analytics.NewService(reportStorage)

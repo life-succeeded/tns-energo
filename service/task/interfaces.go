@@ -7,6 +7,6 @@ import (
 
 type Storage interface {
 	AddOne(ctx libctx.Context, task Task) (string, error)
-	GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspectorId int) ([]Task, error)
+	GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]Task, error)
 	UpdateStatus(ctx libctx.Context, id string, status Status) error
 }

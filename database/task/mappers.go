@@ -8,7 +8,7 @@ import (
 func MapToDb(t domain.Task) Task {
 	return Task{
 		Id:            t.Id,
-		InspectorId:   t.InspectorId,
+		BrigadeId:     t.BrigadeId,
 		Address:       t.Address,
 		VisitDate:     t.VisitDate,
 		Status:        int(t.Status),
@@ -23,7 +23,7 @@ func MapToDb(t domain.Task) Task {
 func MapToDomain(t Task) domain.Task {
 	return domain.Task{
 		Id:            t.Id,
-		InspectorId:   t.InspectorId,
+		BrigadeId:     t.BrigadeId,
 		Address:       t.Address,
 		VisitDate:     t.VisitDate,
 		Status:        domain.Status(t.Status),

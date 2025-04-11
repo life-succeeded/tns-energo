@@ -31,11 +31,11 @@ func (s *Mongo) AddOne(ctx libctx.Context, inspection inspection.Inspection) err
 	return err
 }
 
-func (s *Mongo) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspectorId int) ([]inspection.Inspection, error) {
+func (s *Mongo) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]inspection.Inspection, error) {
 	cursor, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
-		Find(ctx, bson.M{"inspector_id": inspectorId})
+		Find(ctx, bson.M{"brigade_id": brigadeId})
 	if err != nil {
 		return nil, err
 	}

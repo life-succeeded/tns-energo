@@ -7,7 +7,7 @@ import (
 
 type Task struct {
 	Id            string            `json:"id"`
-	InspectorId   int               `json:"inspector_id"`
+	BrigadeId     string            `json:"brigade_id"`
 	Address       string            `json:"address"`
 	VisitDate     time.Time         `json:"visit_date"`
 	Status        Status            `json:"status"`
@@ -19,7 +19,7 @@ type Task struct {
 }
 
 type AddOneRequest struct {
-	InspectorId   int               `json:"inspector_id"`
+	BrigadeId     string            `json:"brigade_id"`
 	Address       string            `json:"address"`
 	VisitDate     time.Time         `json:"visit_date"`
 	Consumer      consumer.Consumer `json:"consumer"`

@@ -7,7 +7,7 @@ import (
 
 type Task struct {
 	Id            string            `json:"_id,omitempty" bson:"_id,omitempty"`
-	InspectorId   int               `json:"inspector_id" bson:"inspector_id"`
+	BrigadeId     string            `json:"brigade_id" bson:"brigade_id"`
 	Address       string            `json:"address" bson:"address"`
 	VisitDate     time.Time         `json:"visit_date" bson:"visit_date"`
 	Status        int               `json:"status" bson:"status"`

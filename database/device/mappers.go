@@ -1,45 +1,28 @@
 package device
 
 import (
+	"tns-energo/database/seal"
 	domain "tns-energo/service/device"
-
-	"github.com/shopspring/decimal"
 )
 
 func MapToDb(d domain.Device) Device {
 	return Device{
-		Type:                d.Type,
-		Number:              d.Number,
-		Voltage:             d.Voltage,
-		Amperage:            d.Amperage,
-		AccuracyClass:       d.AccuracyClass,
-		TariffsCount:        d.TariffsCount,
-		DeploymentPlace:     d.DeploymentPlace,
-		ValencyBeforeDot:    d.ValencyBeforeDot,
-		ValencyAfterDot:     d.ValencyAfterDot,
-		ManufactureYear:     d.ManufactureYear,
-		VerificationQuarter: d.VerificationQuarter,
-		VerificationYear:    d.VerificationYear,
-		DeploymentDate:      d.DeploymentDate,
-		Value:               d.Value.String(),
+		Type:            d.Type,
+		Number:          d.Number,
+		DeploymentPlace: int(d.DeploymentPlace),
+		OtherPlace:      d.OtherPlace,
+		Seals:           seal.MapSliceToDb(d.Seals),
+		Value:           d.Value,
 	}
 }
 
 func MapToDomain(d Device) domain.Device {
 	return domain.Device{
-		Type:                d.Type,
-		Number:              d.Number,
-		Voltage:             d.Voltage,
-		Amperage:            d.Amperage,
-		AccuracyClass:       d.AccuracyClass,
-		TariffsCount:        d.TariffsCount,
-		DeploymentPlace:     d.DeploymentPlace,
-		ValencyBeforeDot:    d.ValencyBeforeDot,
-		ValencyAfterDot:     d.ValencyAfterDot,
-		ManufactureYear:     d.ManufactureYear,
-		VerificationQuarter: d.VerificationQuarter,
-		VerificationYear:    d.VerificationYear,
-		DeploymentDate:      d.DeploymentDate,
-		Value:               decimal.RequireFromString(d.Value),
+		Type:            d.Type,
+		Number:          d.Number,
+		DeploymentPlace: domain.DeploymentPlace(d.DeploymentPlace),
+		OtherPlace:      d.OtherPlace,
+		Seals:           seal.MapSliceToDomain(d.Seals),
+		Value:           d.Value,
 	}
 }

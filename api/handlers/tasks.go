@@ -23,20 +23,20 @@ func AddTaskHandler(taskService *task.Service) router.Handler {
 	}
 }
 
-type getTasksByInspectorIdVars struct {
-	InspectorId int `path:"inspector_id"`
+type getTasksByBrigadeIdVars struct {
+	BrigadeId string `path:"brigade_id"`
 }
 
-func GetTasksByInspectorId(taskService *task.Service) router.Handler {
+func GetTasksByBrigadeId(taskService *task.Service) router.Handler {
 	return func(c router.Context) error {
-		var vars getTasksByInspectorIdVars
+		var vars getTasksByBrigadeIdVars
 		if err := c.Vars(&vars); err != nil {
 			return fmt.Errorf("failed to read vars: %w", err)
 		}
 
-		response, err := taskService.GetByInspectorId(c.Ctx(), c.Log(), vars.InspectorId)
+		response, err := taskService.GetByBrigadeId(c.Ctx(), c.Log(), vars.BrigadeId)
 		if err != nil {
-			return fmt.Errorf("failed to get tasks by inspector id: %w", err)
+			return fmt.Errorf("failed to get tasks by brigade id: %w", err)
 		}
 
 		return c.WriteJson(http.StatusOK, response)
