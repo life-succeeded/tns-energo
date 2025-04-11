@@ -10,13 +10,13 @@ func UploadImageHandler(imageService *image.Service) router.Handler {
 	return func(c router.Context) error {
 		log := c.Log()
 
-		payload, err := c.ReadBytes()
-		if err != nil {
-			log.Errorf("failed to read: %v", err)
+		var request image.UploadRequest
+		if err := c.ReadJson(&request); err != nil {
+			log.Errorf("failed to parse request body: %w", err)
 			return err
 		}
 
-		response, err := imageService.Upload(c.Ctx(), log, payload)
+		response, err := imageService.Upload(c.Ctx(), log, request)
 		if err != nil {
 			log.Errorf("failed to upload: %v", err)
 			return err

@@ -2,13 +2,15 @@ package image
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
+	"time"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/file"
-
-	"github.com/google/uuid"
 )
+
+var imageNumbersCache = make(map[string]int, 32)
 
 type Service struct {
 	images Storage
@@ -20,8 +22,19 @@ func NewService(images Storage) *Service {
 	}
 }
 
-func (s *Service) Upload(ctx libctx.Context, log liblog.Logger, payload []byte) (file.File, error) {
-	name := fmt.Sprintf("%s.png", uuid.New()) // TODO: указывать расширение в зависимости от типа картинки
+func (s *Service) Upload(ctx libctx.Context, log liblog.Logger, request UploadRequest) (file.File, error) {
+	payload, err := base64.StdEncoding.DecodeString(request.Payload)
+	if err != nil {
+		return file.File{}, fmt.Errorf("failed to decode payload: %w", err)
+	}
+
+	location, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		return file.File{}, fmt.Errorf("failed to load location: %w", err)
+	}
+
+	imageNumbersCache[request.DeviceNumber] = imageNumbersCache[request.DeviceNumber] + 1
+	name := fmt.Sprintf("%s_%s_%d.png", request.Address, time.Now().In(location).Format("02.01.2006_15.04"), imageNumbersCache[request.DeviceNumber])
 	url, err := s.images.Add(ctx, name, bytes.NewReader(payload), len(payload))
 	if err != nil {
 		return file.File{}, fmt.Errorf("failed to upload image: %w", err)
