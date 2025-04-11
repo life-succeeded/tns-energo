@@ -46,8 +46,19 @@ func EnableCors(up librouter.Context, h librouter.Handler) librouter.Handler {
 		up.WriteHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
 		up.WriteHeader("Access-Control-Allow-Headers", "*")
 
+		up.Response().Header().Set("Access-Control-Allow-Origin", "*")
+		up.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
+		up.Response().Header().Set("Access-Control-Allow-Headers", "*")
+		c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+		c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
+		c.Response().Header().Set("Access-Control-Allow-Headers", "*")
+
 		if c.Request().Method == http.MethodOptions {
-			up.Write(http.StatusOK)
+			c.Response().WriteHeader(http.StatusOK)
+		}
+
+		if up.Request().Method == http.MethodOptions {
+			up.Response().WriteHeader(http.StatusOK)
 		}
 
 		return h(c)
