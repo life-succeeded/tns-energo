@@ -72,7 +72,7 @@ func (s *ServerBuilder) AddBrigades(brigadeService *brigade.Service) {
 }
 
 func (s *ServerBuilder) Build() libserver.Server {
-	s.server.UseHandler(s.router)
+	s.server.UseHandler(libserver.WithCors(s.router))
 
 	return s.server
 }
