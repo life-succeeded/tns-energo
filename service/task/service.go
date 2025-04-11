@@ -17,7 +17,7 @@ func NewService(tasks Storage) *Service {
 	}
 }
 
-func (s *Service) AddOne(ctx libctx.Context, log liblog.Logger, request AddOneRequest) (Task, error) {
+func (s *Service) AddOne(ctx libctx.Context, _ liblog.Logger, request AddOneRequest) (Task, error) {
 	var (
 		now  = time.Now()
 		task = Task{
@@ -52,7 +52,16 @@ func (s *Service) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeI
 	return tasks, nil
 }
 
-func (s *Service) UpdateStatus(ctx libctx.Context, log liblog.Logger, id string, request UpdateStatusRequest) error {
+func (s *Service) GetById(ctx libctx.Context, log liblog.Logger, id string) ([]Task, error) {
+	tasks, err := s.tasks.GetById(ctx, log, id)
+	if err != nil {
+		return nil, fmt.Errorf("could not get tasks by brigade id: %w", err)
+	}
+
+	return tasks, nil
+}
+
+func (s *Service) UpdateStatus(ctx libctx.Context, _ liblog.Logger, id string, request UpdateStatusRequest) error {
 	err := s.tasks.UpdateStatus(ctx, id, request.NewStatus)
 	if err != nil {
 		return fmt.Errorf("could not update task status: %w", err)

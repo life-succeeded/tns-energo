@@ -78,3 +78,26 @@ func (s *Mongo) UpdateStatus(ctx libctx.Context, id string, status task.Status) 
 
 	return err
 }
+
+func (s *Mongo) GetById(ctx libctx.Context, log liblog.Logger, id string) ([]task.Task, error) {
+	cursor, err := s.cli.
+		Database(s.database).
+		Collection(s.collection).
+		Find(ctx, bson.M{"_id": id})
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := cursor.Close(ctx); err != nil {
+			log.Errorf("failed to close cursor: %v", err)
+		}
+	}()
+
+	var tasks []Task
+	err = cursor.All(ctx, &tasks)
+	if err != nil {
+		return nil, err
+	}
+
+	return MapSliceToDomain(tasks), nil
+}
