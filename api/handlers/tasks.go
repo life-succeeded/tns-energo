@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"tns-energo/lib/http/router"
 	"tns-energo/service/task"
@@ -8,18 +9,14 @@ import (
 
 func AddTaskHandler(taskService *task.Service) router.Handler {
 	return func(c router.Context) error {
-		log := c.Log()
-
 		var request task.AddOneRequest
 		if err := c.ReadJson(&request); err != nil {
-			log.Errorf("failed to read json: %v", err)
-			return err
+			return fmt.Errorf("failed to read json: %w", err)
 		}
 
-		response, err := taskService.AddOne(c.Ctx(), log, request)
+		response, err := taskService.AddOne(c.Ctx(), c.Log(), request)
 		if err != nil {
-			log.Errorf("failed to add one task: %v", err)
-			return err
+			return fmt.Errorf("failed to add one task: %w", err)
 		}
 
 		return c.WriteJson(http.StatusOK, response)
@@ -32,18 +29,14 @@ type getTasksByInspectorIdVars struct {
 
 func GetTasksByInspectorId(taskService *task.Service) router.Handler {
 	return func(c router.Context) error {
-		log := c.Log()
-
 		var vars getTasksByInspectorIdVars
 		if err := c.Vars(&vars); err != nil {
-			log.Errorf("failed to read vars: %v", err)
-			return err
+			return fmt.Errorf("failed to read vars: %w", err)
 		}
 
-		response, err := taskService.GetByInspectorId(c.Ctx(), log, vars.InspectorId)
+		response, err := taskService.GetByInspectorId(c.Ctx(), c.Log(), vars.InspectorId)
 		if err != nil {
-			log.Errorf("failed to get tasks by inspector id: %v", err)
-			return err
+			return fmt.Errorf("failed to get tasks by inspector id: %w", err)
 		}
 
 		return c.WriteJson(http.StatusOK, response)
@@ -56,24 +49,19 @@ type updateTaskStatusVars struct {
 
 func UpdateTaskStatusHandler(taskService *task.Service) router.Handler {
 	return func(c router.Context) error {
-		log := c.Log()
-
 		var vars updateTaskStatusVars
 		if err := c.Vars(&vars); err != nil {
-			log.Errorf("failed to read vars: %v", err)
-			return err
+			return fmt.Errorf("failed to read vars: %w", err)
 		}
 
 		var request task.UpdateStatusRequest
 		if err := c.ReadJson(&request); err != nil {
-			log.Errorf("failed to read json: %v", err)
-			return err
+			return fmt.Errorf("failed to read json: %w", err)
 		}
 
-		err := taskService.UpdateStatus(c.Ctx(), log, vars.TaskId, request)
+		err := taskService.UpdateStatus(c.Ctx(), c.Log(), vars.TaskId, request)
 		if err != nil {
-			log.Errorf("failed to update task status: %v", err)
-			return err
+			return fmt.Errorf("failed to update task status: %w", err)
 		}
 
 		c.Write(http.StatusOK)

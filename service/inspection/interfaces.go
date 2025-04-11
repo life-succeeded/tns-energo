@@ -6,7 +6,6 @@ import (
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/registry"
 	"tns-energo/service/task"
-	"tns-energo/service/user"
 )
 
 type Storage interface {
@@ -16,10 +15,6 @@ type Storage interface {
 
 type DocumentStorage interface {
 	Add(ctx libctx.Context, fileName string, payload io.Reader, payloadLength int) (string, error)
-}
-
-type UserStorage interface {
-	GetLightById(ctx libctx.Context, userId int) (user.UserLight, error)
 }
 
 type RegistryStorage interface {

@@ -1,9 +1,7 @@
 package main
 
 import (
-	"os"
 	"tns-energo/config"
-	"tns-energo/lib/authorize"
 	libconfig "tns-energo/lib/config"
 	"tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
@@ -24,15 +22,12 @@ func main() {
 		return
 	}
 
-	// нет времени объяснять, суй секрет себе в кэш
-	authorize.CachedSecret = []byte(settings.Auth.Secret)
-
 	mainCtx, cancelMainCtx := ctx.Background().WithCancel()
 	defer cancelMainCtx()
 
 	app := NewApp(mainCtx, log, settings)
 
-	if err := app.InitDatabases(os.DirFS("./"), "database/migrations/postgres"); err != nil {
+	if err := app.InitDatabases(); err != nil {
 		log.Errorf("failed to init databases: %v", err)
 		return
 	}

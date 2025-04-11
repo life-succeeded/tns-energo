@@ -9,8 +9,6 @@ services:
     environment:
       ENV: dev
     depends_on:
-      postgres:
-        condition: service_healthy
       mongo:
         condition: service_healthy
       minio:
@@ -19,26 +17,6 @@ services:
       - backend
     healthcheck:
       test: curl -X GET -f http://localhost:8080/health
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  postgres:
-    image: postgres:latest
-    restart: unless-stopped
-    container_name: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql
-    environment:
-      POSTGRES_DB: tns-energo
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: sk8McoXvG7Cs
-    ports:
-      - "5432:5432"
-    networks:
-      - backend
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5

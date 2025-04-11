@@ -53,12 +53,15 @@ func (s *Mongo) GetByAccountNumber(ctx libctx.Context, accountNumber string) (re
 		Collection(s.collection).
 		FindOne(ctx, bson.M{"account_number": accountNumber}).
 		Decode(&item)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return registry.Item{}, registry.ErrItemNotFound
+		}
 
-	if err != nil && errors.Is(err, mongo.ErrNoDocuments) {
-		return registry.Item{}, registry.ErrItemNotFound
+		return registry.Item{}, err
 	}
 
-	return MapToDomain(item), err
+	return MapToDomain(item), nil
 }
 
 func (s *Mongo) GetByAccountNumberRegular(ctx libctx.Context, log liblog.Logger, accountNumber string) ([]registry.Item, error) {

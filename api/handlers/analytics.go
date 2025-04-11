@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 	"tns-energo/lib/http/router"
@@ -13,24 +14,19 @@ type generateDailyReportVars struct {
 
 func GenerateDailyReportHandler(analyticsService *analytics.Service) router.Handler {
 	return func(c router.Context) error {
-		log := c.Log()
-
 		var vars generateDailyReportVars
 		if err := c.Vars(&vars); err != nil {
-			log.Errorf("failed to read vars: %v", err)
-			return err
+			return fmt.Errorf("failed to read vars: %w", err)
 		}
 
 		date, err := time.Parse("2006-01-02", vars.Date)
 		if err != nil {
-			log.Errorf("failed to parse date: %v", err)
-			return err
+			return fmt.Errorf("failed to parse date: %w", err)
 		}
 
-		response, err := analyticsService.GenerateDailyReport(c.Ctx(), log, date)
+		response, err := analyticsService.GenerateDailyReport(c.Ctx(), c.Log(), date)
 		if err != nil {
-			log.Errorf("failed to generate daily report: %v", err)
-			return err
+			return fmt.Errorf("failed to generate daily report: %w", err)
 		}
 
 		return c.WriteJson(http.StatusOK, response)
@@ -39,11 +35,9 @@ func GenerateDailyReportHandler(analyticsService *analytics.Service) router.Hand
 
 func GetAllReportsHandler(analyticsService *analytics.Service) router.Handler {
 	return func(c router.Context) error {
-		log := c.Log()
-
-		response, err := analyticsService.GetAllReports(c.Ctx(), log)
+		response, err := analyticsService.GetAllReports(c.Ctx(), c.Log())
 		if err != nil {
-			log.Errorf("failed to get all reports: %v", err)
+			return fmt.Errorf("failed to get all reports: %w", err)
 		}
 
 		return c.WriteJson(http.StatusOK, response)

@@ -3,19 +3,18 @@ package config
 type Settings struct {
 	Port        int         `json:"port"`
 	Databases   Databases   `json:"databases"`
-	Auth        Auth        `json:"auth"`
 	Templates   Templates   `json:"templates"`
 	Registry    MongoConfig `json:"registry"`
 	Inspections MongoConfig `json:"inspections"`
 	Reports     MongoConfig `json:"reports"`
 	Tasks       MongoConfig `json:"tasks"`
+	Brigades    MongoConfig `json:"brigades"`
 	Cron        Cron        `json:"cron"`
 }
 
 type Databases struct {
-	Postgres string `json:"postgres"`
-	Mongo    string `json:"mongo"`
-	Minio    Minio  `json:"minio"`
+	Mongo string `json:"mongo"`
+	Minio Minio  `json:"minio"`
 }
 
 type Minio struct {
@@ -28,14 +27,9 @@ type Minio struct {
 	Host            string `json:"host"`
 }
 
-type Auth struct {
-	Secret                 string `json:"secret"`
-	TokenExpiresAfterHours int    `json:"token_expires_after_hours"`
-}
-
 type Templates struct {
-	Limitation string `json:"limitation"`
-	Resumption string `json:"resumption"`
+	Universal string `json:"universal"`
+	Control   string `json:"control"`
 }
 
 type MongoConfig struct {

@@ -9,7 +9,6 @@ import (
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/file"
 	"tns-energo/service/task"
-	"tns-energo/service/user"
 
 	"github.com/google/uuid"
 	"github.com/lukasjarosch/go-docx"
@@ -19,28 +18,21 @@ type Service struct {
 	settings    config.Settings
 	inspections Storage
 	documents   DocumentStorage
-	users       UserStorage
 	registry    RegistryStorage
 	tasks       TaskStorage
 }
 
-func NewService(settings config.Settings, inspections Storage, documents DocumentStorage, users UserStorage, registry RegistryStorage, tasks TaskStorage) *Service {
+func NewService(settings config.Settings, inspections Storage, documents DocumentStorage, registry RegistryStorage, tasks TaskStorage) *Service {
 	return &Service{
 		settings:    settings,
 		inspections: inspections,
 		documents:   documents,
-		users:       users,
 		registry:    registry,
 		tasks:       tasks,
 	}
 }
 
 func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request InspectRequest) (file.File, error) {
-	user, err := s.users.GetLightById(ctx, ctx.Authorize.UserId)
-	if err != nil {
-		return file.File{}, fmt.Errorf("could not get user: %w", err)
-	}
-
 	inspection := Inspection{
 		InspectorId:         ctx.Authorize.UserId,
 		TaskId:              request.TaskId,
@@ -62,7 +54,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 		SealNumber:          request.SealNumber,
 	}
 
-	buf, err := s.generateAct(inspection, user)
+	buf, err := s.generateAct(inspection)
 	if err != nil {
 		return file.File{}, fmt.Errorf("could not generate act: %w", err)
 	}
@@ -130,18 +122,13 @@ func (s *Service) GetByInspectorId(ctx libctx.Context, log liblog.Logger, inspec
 	return inspections, nil
 }
 
-func (s *Service) generateAct(inspection Inspection, user user.UserLight) (*bytes.Buffer, error) {
+func (s *Service) generateAct(inspection Inspection) (*bytes.Buffer, error) {
 	consumerName := fmt.Sprintf("%s %s", inspection.Consumer.Surname, inspection.Consumer.Name)
 	if len(inspection.Consumer.Patronymic) != 0 {
 		consumerName = fmt.Sprintf("%s %s", consumerName, inspection.Consumer.Patronymic)
 	}
 	if len(consumerName) == 0 {
 		consumerName = inspection.Consumer.LegalEntityName
-	}
-
-	inspectorName := fmt.Sprintf("%s %s", user.Surname, user.Name)
-	if len(user.Patronymic) != 0 {
-		inspectorName = fmt.Sprintf("%s %s", inspectorName, user.Patronymic)
 	}
 
 	var (
@@ -159,8 +146,6 @@ func (s *Service) generateAct(inspection Inspection, user user.UserLight) (*byte
 		"act_date_month":        russianMonth(inspection.InspectionDate.Month()),
 		"act_date_year":         inspection.InspectionDate.Year(),
 		"consumer_name":         consumerName,
-		"inspector_position":    user.Position,
-		"inspector_name":        inspectorName,
 		"consumer_agent_name":   consumerName,
 		"account_number":        inspection.AccountNumber,
 		"contract_number":       inspection.Contract.Number,
@@ -192,12 +177,7 @@ func (s *Service) generateAct(inspection Inspection, user user.UserLight) (*byte
 		"deployment_place":      inspection.Device.DeploymentPlace,
 	}
 
-	path := s.settings.Templates.Limitation
-	if inspection.Resolution == Resumption {
-		path = s.settings.Templates.Resumption
-	}
-
-	doc, err := docx.Open(path)
+	doc, err := docx.Open(s.settings.Templates.Universal)
 	if err != nil {
 		return nil, fmt.Errorf("could not open act template: %w", err)
 	}
