@@ -7,6 +7,7 @@ import (
 	"time"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
+	"tns-energo/service/device"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -38,28 +39,46 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) e
 		return fmt.Errorf("could not get rows: %w", err)
 	}
 
-	items := make([]Item, 0, len(rows)-1)
+	items := make([]Item, 0, len(rows)-9)
 	now := time.Now()
-	for _, row := range rows[1:] {
-		if len(row) != 6 {
-			log.Errorf("invalid row length: %d", len(row))
+	for _, row := range rows[9:] {
+		addressSlice := make([]string, 0, 4)
+
+		if len(row[3]) != 0 {
+			addressSlice = append(addressSlice, row[3])
+		}
+
+		if len(row[4]) != 0 {
+			addressSlice = append(addressSlice, row[4])
+		}
+
+		if len(row[5]) != 0 {
+			addressSlice = append(addressSlice, fmt.Sprintf("д %v", row[5]))
+		}
+
+		if len(row[6]) != 0 {
+			addressSlice = append(addressSlice, row[6])
+		}
+
+		deploymentDate, err := time.Parse("01-02-06", row[15])
+		if err != nil {
+			log.Errorf("could not parse deployment date: %v", err)
 			continue
 		}
 
-		haveAutomaton := false
-		if strings.EqualFold(row[5], "+") {
-			haveAutomaton = true
-		}
-
 		items = append(items, Item{
-			AccountNumber: row[0],
-			Surname:       row[1],
-			Name:          row[2],
-			Patronymic:    row[3],
-			Address:       row[4],
-			HaveAutomaton: haveAutomaton,
-			CreatedAt:     now,
-			UpdatedAt:     now,
+			Address: strings.Join(addressSlice, ", "),
+			OldDevice: device.Device{
+				Type:   row[10],
+				Number: row[11],
+			},
+			NewDevice: device.Device{
+				Type:           row[13],
+				Number:         row[14],
+				DeploymentDate: deploymentDate,
+			},
+			CreatedAt: now,
+			UpdatedAt: now,
 		})
 	}
 

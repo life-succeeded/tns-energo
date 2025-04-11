@@ -20,6 +20,7 @@ func MapToDb(d domain.Device) Device {
 		ManufactureYear:     d.ManufactureYear,
 		VerificationQuarter: d.VerificationQuarter,
 		VerificationYear:    d.VerificationYear,
+		DeploymentDate:      d.DeploymentDate,
 		Value:               d.Value.String(),
 	}
 }
@@ -38,6 +39,7 @@ func MapToDomain(d Device) domain.Device {
 		ManufactureYear:     d.ManufactureYear,
 		VerificationQuarter: d.VerificationQuarter,
 		VerificationYear:    d.VerificationYear,
+		DeploymentDate:      d.DeploymentDate,
 		Value:               decimal.RequireFromString(d.Value),
 	}
 }

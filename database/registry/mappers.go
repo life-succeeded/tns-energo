@@ -1,16 +1,17 @@
 package registry
 
-import domain "tns-energo/service/registry"
+import (
+	"tns-energo/database/device"
+	domain "tns-energo/service/registry"
+)
 
 func MapToDb(i domain.Item) Item {
 	return Item{
 		Id:            i.Id,
 		AccountNumber: i.AccountNumber,
-		Surname:       i.Surname,
-		Name:          i.Name,
-		Patronymic:    i.Patronymic,
 		Address:       i.Address,
-		HaveAutomaton: i.HaveAutomaton,
+		OldDevice:     device.MapToDb(i.OldDevice),
+		NewDevice:     device.MapToDb(i.NewDevice),
 		CreatedAt:     i.CreatedAt,
 		UpdatedAt:     i.UpdatedAt,
 	}
@@ -20,11 +21,9 @@ func MapToDomain(i Item) domain.Item {
 	return domain.Item{
 		Id:            i.Id,
 		AccountNumber: i.AccountNumber,
-		Surname:       i.Surname,
-		Name:          i.Name,
-		Patronymic:    i.Patronymic,
 		Address:       i.Address,
-		HaveAutomaton: i.HaveAutomaton,
+		OldDevice:     device.MapToDomain(i.OldDevice),
+		NewDevice:     device.MapToDomain(i.NewDevice),
 		CreatedAt:     i.CreatedAt,
 		UpdatedAt:     i.UpdatedAt,
 	}

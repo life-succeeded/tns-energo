@@ -2,14 +2,12 @@ package inspection
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"time"
 	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/file"
-	"tns-energo/service/registry"
 	"tns-energo/service/task"
 	"tns-energo/service/user"
 
@@ -91,7 +89,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 		return file.File{}, fmt.Errorf("could not update task status: %w", err)
 	}
 
-	item, err := s.registry.GetByAccountNumber(ctx, inspection.AccountNumber)
+	/*item, err := s.registry.GetByAccountNumber(ctx, inspection.AccountNumber)
 	if err != nil {
 		if !errors.Is(err, registry.ErrItemNotFound) {
 			return file.File{}, fmt.Errorf("could not get registry item: %w", err)
@@ -99,11 +97,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 
 		addErr := s.registry.AddOne(ctx, registry.Item{
 			AccountNumber: inspection.AccountNumber,
-			Surname:       inspection.Consumer.Surname,
-			Name:          inspection.Consumer.Name,
-			Patronymic:    inspection.Consumer.Patronymic,
 			Address:       inspection.Address,
-			HaveAutomaton: inspection.HaveAutomaton,
 			CreatedAt:     now,
 			UpdatedAt:     now,
 		})
@@ -116,17 +110,13 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 
 	err = s.registry.UpdateOne(ctx, registry.Item{
 		AccountNumber: inspection.AccountNumber,
-		Surname:       inspection.Consumer.Surname,
-		Name:          inspection.Consumer.Name,
-		Patronymic:    inspection.Consumer.Patronymic,
 		Address:       inspection.Address,
-		HaveAutomaton: inspection.HaveAutomaton,
 		CreatedAt:     item.CreatedAt,
 		UpdatedAt:     now,
 	})
 	if err != nil {
 		return file.File{}, fmt.Errorf("could not update registry item: %w", err)
-	}
+	}*/
 
 	return inspection.ResolutionFile, nil
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
+	libtime "tns-energo/lib/time"
 	"tns-energo/service/file"
 )
 
@@ -28,13 +29,8 @@ func (s *Service) Upload(ctx libctx.Context, log liblog.Logger, request UploadRe
 		return file.File{}, fmt.Errorf("failed to decode payload: %w", err)
 	}
 
-	location, err := time.LoadLocation("Europe/Moscow")
-	if err != nil {
-		return file.File{}, fmt.Errorf("failed to load location: %w", err)
-	}
-
 	imageNumbersCache[request.DeviceNumber] = imageNumbersCache[request.DeviceNumber] + 1
-	name := fmt.Sprintf("%s_%s_%d.png", request.Address, time.Now().In(location).Format("02.01.2006_15.04"), imageNumbersCache[request.DeviceNumber])
+	name := fmt.Sprintf("%s_%s_%d.png", request.Address, time.Now().In(libtime.MoscowLocation()).Format("02.01.2006_15.04"), imageNumbersCache[request.DeviceNumber])
 	url, err := s.images.Add(ctx, name, bytes.NewReader(payload), len(payload))
 	if err != nil {
 		return file.File{}, fmt.Errorf("failed to upload image: %w", err)
