@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/http"
 	librouter "tns-energo/lib/http/router"
 	"tns-energo/lib/http/router/status"
 )
@@ -44,6 +45,10 @@ func EnableCors(_ librouter.Context, h librouter.Handler) librouter.Handler {
 		c.WriteHeader("Access-Control-Allow-Origin", "*")
 		c.WriteHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
 		c.WriteHeader("Access-Control-Allow-Headers", "*")
+
+		if c.Request().Method == "OPTIONS" {
+			c.Write(http.StatusOK)
+		}
 
 		return h(c)
 	}
