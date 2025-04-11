@@ -2,7 +2,7 @@ name: Docker Build & Deploy
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
 
 env:
   CONTAINER_NAME: tns-energo
@@ -11,7 +11,7 @@ env:
 jobs:
   deploy:
     runs-on: self-hosted
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -26,14 +26,11 @@ jobs:
 
       - name: Stop and remove containers using old images of the same container (excluding current)
         run: |
-          current_image_id=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | \
-            grep "^$CONTAINER_NAME:${{ env.SHORT_SHA }}" | awk '{ print $2 }')
-          
           # Get containers using $CONTAINER_NAME images excluding current SHA
-          docker ps -a --format '{{.ID}} {{.Image}}' | while read container_id image_ref; do
-            image_id=$(docker inspect --format='{{.Image}}' "$container_id")
-            if [ "$image_id" != "$current_image_id" ]; then
-              echo "Stopping and removing container $container_id using old image $image_id"
+          docker ps -a --filter "name=$CONTAINER_NAME-*" --format '{{.ID}} {{.Image}}' | while read container_id image_ref; do
+            image_tag=$(echo "$image_ref" | cut -d':' -f2)
+            if [ "$image_tag" != "${{ env.SHORT_SHA }}" ]; then
+              echo "Stopping and removing container $container_id using old image $image_ref"
               docker stop "$container_id" || true
               docker rm "$container_id" || true
             fi
@@ -45,24 +42,18 @@ jobs:
 
       - name: Remove old images of the same container (keep current)
         run: |
-          current_image_id=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | \
-            grep "^$CONTAINER_NAME:${{ env.SHORT_SHA }}" | awk '{ print $2 }')
-          
-          docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | \
-          grep "^$CONTAINER_NAME:" | \
+          docker images --filter "reference=$CONTAINER_NAME:*" --format '{{.Repository}}:{{.Tag}}' | \
           grep -v ":${{ env.SHORT_SHA }}" | \
-          awk '{ print $2 }' | \
-          grep -v "$current_image_id" | \
           xargs -r docker rmi -f
 
-      - name: Remove all stopped containers with same name
+      - name: Remove stopped containers with same name pattern
         run: |
-          docker ps -a --filter "name=$CONTAINER_NAME" --filter "status=exited" -q | \
+          docker ps -a --filter "name=$CONTAINER_NAME-*" --filter "status=exited" -q | \
           xargs -r docker rm
 
       - name: Truncate container logs
         run: |
-          CONTAINER_ID=$(docker ps -aqf "name=$CONTAINER_NAME")
+          CONTAINER_ID=$(docker ps -qf "name=$CONTAINER_NAME-${{ env.SHORT_SHA }}")
           if [ -n "$CONTAINER_ID" ]; then
             LOG_FILE="/var/lib/docker/containers/$CONTAINER_ID/${CONTAINER_ID}-json.log"
             if [ -f "$LOG_FILE" ]; then
