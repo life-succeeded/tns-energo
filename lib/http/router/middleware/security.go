@@ -36,3 +36,15 @@ func IsAdmin(failHandler librouter.Handler) librouter.Middleware {
 		return h
 	}
 }
+
+// EnableCors
+// Проверяет указана ли в запросе валидная авторизация с признаком админа. В случае провала проверки - вызывает failHandler, если он указан
+func EnableCors(_ librouter.Context, h librouter.Handler) librouter.Handler {
+	return func(c librouter.Context) error {
+		c.Request().Header.Set("Access-Control-Allow-Origin", "*")
+		c.Request().Header.Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
+		c.Request().Header.Set("Access-Control-Allow-Headers", "*")
+
+		return h(c)
+	}
+}
