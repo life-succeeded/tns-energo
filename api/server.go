@@ -26,7 +26,7 @@ type ServerBuilder struct {
 func NewServerBuilder(ctx context.Context, log liblog.Logger, settings config.Settings) *ServerBuilder {
 	return &ServerBuilder{
 		server: libserver.NewHTTPServer(ctx, log, fmt.Sprintf(":%d", settings.Port)),
-		router: librouter.NewRouter(log).Use(middleware.Recover, middleware.LogError, middleware.EnableCors),
+		router: librouter.NewRouter(log).Use(middleware.Recover, middleware.LogError),
 	}
 }
 
