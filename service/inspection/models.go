@@ -28,7 +28,6 @@ type Inspection struct {
 	Device                  device.Device     `json:"device"`
 	ReasonType              ReasonType        `json:"reason_type"`
 	Reason                  string            `json:"reason"`
-	ActCopies               int               `json:"act_copies"`
 	Images                  []file.File       `json:"images"`
 	InspectionDate          time.Time         `json:"inspection_date"`
 	ResolutionFile          file.File         `json:"resolution_file"`
@@ -60,7 +59,6 @@ type InspectRequest struct {
 	Device                  device.Device     `json:"device"`
 	ReasonType              ReasonType        `json:"reason_type"`
 	Reason                  string            `json:"reason"`
-	ActCopies               int               `json:"act_copies"`
 	Images                  []file.File       `json:"images"`
 	IsChecked               bool              `json:"is_checked"`
 	IsViolationDetected     bool              `json:"is_violation_detected"`

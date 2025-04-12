@@ -28,7 +28,6 @@ type Inspection struct {
 	Device                  device.Device     `json:"device" bson:"device"`
 	ReasonType              int               `json:"reason_type" bson:"reason_type"`
 	Reason                  string            `json:"reason" bson:"reason"`
-	ActCopies               int               `json:"act_copies" bson:"act_copies"`
 	Images                  []file.File       `json:"images" bson:"images"`
 	InspectionDate          time.Time         `json:"inspection_date" bson:"inspection_date"`
 	ResolutionFile          file.File         `json:"resolution_file" bson:"resolution_file"`

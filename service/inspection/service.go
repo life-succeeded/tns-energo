@@ -78,7 +78,6 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 		Device:                  request.Device,
 		ReasonType:              request.ReasonType,
 		Reason:                  request.Reason,
-		ActCopies:               request.ActCopies,
 		Images:                  request.Images,
 		InspectionDate:          now,
 		IsChecked:               request.IsChecked,
@@ -294,7 +293,6 @@ func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*byt
 		"is_inspector_limited":     isInspectorLimited,
 		"is_not_introduced":        isNotIntroduced,
 		"is_not_introduced_reason": inspection.Reason,
-		"act_copies":               inspection.ActCopies,
 		"inspector1_initials":      firstInspector,
 		"inspector2_initials":      secondInspector,
 	}
@@ -472,7 +470,6 @@ func (s *Service) generateControlAct(inspection Inspection, brig brigade.Brigade
 		"device_consumption":            inspection.Device.Consumption,
 		"seals":                         strings.Join(seals, ", "),
 		"unauthorized_explanation":      inspection.UnauthorizedExplanation,
-		"act_copies":                    inspection.ActCopies,
 		"inspector1_initials":           firstInspector,
 		"inspector2_initials":           secondInspector,
 	}
