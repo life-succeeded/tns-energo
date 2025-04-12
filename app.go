@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	gohttp "net/http"
 	"time"
 	"tns-energo/api"
 	"tns-energo/cluster/analyzer"
@@ -16,7 +15,7 @@ import (
 	dbtask "tns-energo/database/task"
 	"tns-energo/lib/ctx"
 	"tns-energo/lib/db"
-	"tns-energo/lib/http"
+	libhttp "tns-energo/lib/http"
 	libserver "tns-energo/lib/http/server"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/analytics"
@@ -87,7 +86,7 @@ func (a *App) InitDatabases() (err error) {
 }
 
 func (a *App) InitServices() (err error) {
-	libClient := http.NewClient(http.WithClient(&gohttp.Client{}))
+	httpClient := libhttp.NewClient()
 
 	inspectionStorage := dbinspection.NewStorage(a.mongo, a.settings.Inspections.Database, a.settings.Inspections.Collection)
 	registryStorage := dbregistry.NewStorage(a.mongo, a.settings.Registry.Database, a.settings.Registry.Collection)
@@ -111,7 +110,7 @@ func (a *App) InitServices() (err error) {
 		return fmt.Errorf("could not create image storage: %w", err)
 	}
 
-	a.analyzerService = analyzer.NewService(&libClient, a.settings.ClusterServices.AnalyzerService)
+	a.analyzerService = analyzer.NewService(httpClient, a.settings.ClusterServices.AnalyzerService)
 	a.inspectionService = inspection.NewService(a.settings, inspectionStorage, documentStorage, registryStorage, taskStorage, brigadeStorage)
 	a.registryService = registry.NewService(registryStorage)
 	a.imageService = image.NewService(imageStorage, a.analyzerService)

@@ -2,4 +2,4 @@ package analyzer
 
 import "errors"
 
-var BlurredPhotoError = errors.New("photo is blured")
+var ErrBlurredPhoto = errors.New("photo is blurred")

@@ -2,7 +2,6 @@ package http
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -14,10 +13,9 @@ import (
 )
 
 type Client interface {
-	// SetVerbose включает логирование всех запросов и ответов (без тела)
-	SetVerbose(v bool)
 	Do(request *http.Request) (*http.Response, error)
 	DoJson(ctx libctx.Context, method, url string, in, out any) (int, error)
+	SendFormData(ctx libctx.Context, url string, fields []FormDataField, files []FormDataFile, out any) (int, error)
 }
 
 type LibClient struct {
@@ -112,17 +110,6 @@ func (c LibClient) DoJson(ctx libctx.Context, method, url string, in, out any) (
 	return rs.StatusCode, nil
 }
 
-type FormDataField struct {
-	Name  string
-	Value string
-}
-
-type FormDataFile struct {
-	FieldName string
-	FileName  string
-	Base64    string
-}
-
 // SendFormData send multipart/form-data request
 func (c LibClient) SendFormData(ctx libctx.Context, url string, fields []FormDataField, files []FormDataFile, out any) (int, error) {
 	var (
@@ -138,17 +125,12 @@ func (c LibClient) SendFormData(ctx libctx.Context, url string, fields []FormDat
 	}
 
 	for _, file := range files {
-		decodedData, err := base64.StdEncoding.DecodeString(file.Base64)
-		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("can't decode files: %w", err)
-		}
-
 		part, err := writer.CreateFormFile(file.FieldName, file.FileName)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("can't create form file: %w", err)
 		}
 
-		_, err = io.Copy(part, bytes.NewReader(decodedData))
+		_, err = io.Copy(part, file.Payload)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("can't copy file: %w", err)
 		}
@@ -171,7 +153,7 @@ func (c LibClient) SendFormData(ctx libctx.Context, url string, fields []FormDat
 	}
 
 	if err = ReadResponseJson(rs, out); err != nil {
-		return rs.StatusCode, err
+		return rs.StatusCode, fmt.Errorf("can't read response: %w", err)
 	}
 
 	return rs.StatusCode, nil

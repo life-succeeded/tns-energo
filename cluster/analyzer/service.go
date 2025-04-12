@@ -2,40 +2,40 @@ package analyzer
 
 import (
 	"fmt"
-	statusCodes "net/http"
+	"mime/multipart"
+	"net/http"
 	libctx "tns-energo/lib/ctx"
-	"tns-energo/lib/http"
+	libhttp "tns-energo/lib/http"
 )
 
-const fileFiled = "file"
+const fileField = "file"
 
 type Service struct {
-	client  *http.LibClient
+	client  libhttp.Client
 	baseUrl string
 }
 
-func NewService(client *http.LibClient, baseUrl string) *Service {
+func NewService(client libhttp.Client, baseUrl string) *Service {
 	return &Service{
 		client:  client,
 		baseUrl: baseUrl,
 	}
 }
 
-func (s *Service) GetImageOptions(ctx libctx.Context, base64Payload string) (ImageQualityResult, error) {
-	var response ImageQualityResult
-
-	var files = []http.FormDataFile{{
-		FieldName: fileFiled,
-		Base64:    base64Payload,
-		FileName:  "image.jpg",
+func (s *Service) GetImageOptions(ctx libctx.Context, fileName string, payload multipart.File) (ImageQualityResult, error) {
+	var files = []libhttp.FormDataFile{{
+		FieldName: fileField,
+		FileName:  fileName,
+		Payload:   payload,
 	}}
 
-	statusCode, err := s.client.SendFormData(ctx, fmt.Sprintf("%s/process-image", s.baseUrl), nil, files, &response)
+	var response ImageQualityResult
+	status, err := s.client.SendFormData(ctx, fmt.Sprintf("%s/process-image", s.baseUrl), nil, files, &response)
 	if err != nil {
-		return response, err
+		return ImageQualityResult{}, fmt.Errorf("failed to upload image: %w", err)
 	}
-	if statusCode != statusCodes.StatusOK {
-		return response, fmt.Errorf("bad response, status: %d", statusCode)
+	if status != http.StatusOK {
+		return ImageQualityResult{}, fmt.Errorf("bad response, status: %d", status)
 	}
 
 	return response, nil

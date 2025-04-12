@@ -14,7 +14,6 @@ type clientOptionHolder struct {
 	before    func(*http.Request) error
 	after     func(*http.Response) error
 	verbose   bool
-	traces    bool
 	timeout   time.Duration
 }
 
@@ -67,13 +66,6 @@ func WithBefore(f func(r *http.Request) error) ClientOption {
 func WithAfter(f func(r *http.Response) error) ClientOption {
 	return clientOptionFunc(func(o clientOptionHolder) clientOptionHolder {
 		o.after = f
-		return o
-	})
-}
-
-func WithTraces() ClientOption {
-	return clientOptionFunc(func(o clientOptionHolder) clientOptionHolder {
-		o.traces = true
 		return o
 	})
 }
