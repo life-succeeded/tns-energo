@@ -30,6 +30,7 @@ type Minio struct {
 type Templates struct {
 	Universal string `json:"universal"`
 	Control   string `json:"control"`
+	Report    string `json:"report"`
 }
 
 type MongoConfig struct {

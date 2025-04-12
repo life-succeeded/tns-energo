@@ -106,7 +106,7 @@ func (a *App) InitServices() (err error) {
 	a.inspectionService = inspection.NewService(a.settings, inspectionStorage, documentStorage, registryStorage, taskStorage, brigadeStorage)
 	a.registryService = registry.NewService(registryStorage)
 	a.imageService = image.NewService(imageStorage)
-	a.analyticsService = analytics.NewService(reportStorage)
+	a.analyticsService = analytics.NewService(a.settings, reportStorage, inspectionStorage, documentStorage)
 	a.cronService = cron.NewService(a.settings, a.analyticsService)
 	a.taskService = task.NewService(taskStorage)
 	a.brigadeService = brigade.NewService(brigadeStorage)

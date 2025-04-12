@@ -1,6 +1,7 @@
 package inspection
 
 import (
+	"tns-energo/database/brigade"
 	"tns-energo/database/consumer"
 	"tns-energo/database/device"
 	"tns-energo/database/file"
@@ -11,7 +12,7 @@ func MapToDb(i domain.Inspection) Inspection {
 	return Inspection{
 		Id:                      i.Id,
 		TaskId:                  i.TaskId,
-		BrigadeId:               i.BrigadeId,
+		Brigade:                 brigade.MapToDb(i.Brigade),
 		Type:                    int(i.Type),
 		ActNumber:               i.ActNumber,
 		Resolution:              int(i.Resolution),
@@ -47,7 +48,7 @@ func MapToDomain(i Inspection) domain.Inspection {
 	return domain.Inspection{
 		Id:                      i.Id,
 		TaskId:                  i.TaskId,
-		BrigadeId:               i.BrigadeId,
+		Brigade:                 brigade.MapToDomain(i.Brigade),
 		Type:                    domain.Type(i.Type),
 		ActNumber:               i.ActNumber,
 		Resolution:              domain.Resolution(i.Resolution),

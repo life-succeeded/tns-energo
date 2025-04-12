@@ -14,7 +14,8 @@
   },
   "templates": {
     "universal": "./service/inspection/templates/universal_act.docx",
-    "control": "./service/inspection/templates/control_act.docx"
+    "control": "./service/inspection/templates/control_act.docx",
+    "report": "./service/analytics/templates/report.xlsx"
   },
   "registry": {
     "database": "tns-energo",

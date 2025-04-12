@@ -40,10 +40,15 @@ func NewService(settings config.Settings, inspections Storage, documents Documen
 }
 
 func (s *Service) Inspect(ctx libctx.Context, _ liblog.Logger, request InspectRequest) (file.File, error) {
+	brig, err := s.brigades.GetById(ctx, request.BrigadeId)
+	if err != nil {
+		return file.File{}, fmt.Errorf("could not get brigade: %w", err)
+	}
+
 	now := time.Now().In(libtime.MoscowLocation())
 	inspection := Inspection{
 		TaskId:                  request.TaskId,
-		BrigadeId:               request.BrigadeId,
+		Brigade:                 brig,
 		Type:                    request.Type,
 		ActNumber:               request.ActNumber,
 		Resolution:              request.Resolution,
@@ -71,11 +76,6 @@ func (s *Service) Inspect(ctx libctx.Context, _ liblog.Logger, request InspectRe
 		OldDeviceValueDate:      request.OldDeviceValueDate,
 		UnauthorizedExplanation: request.UnauthorizedExplanation,
 		EnergyActionDate:        request.EnergyActionDate,
-	}
-
-	brig, err := s.brigades.GetById(ctx, inspection.BrigadeId)
-	if err != nil {
-		return file.File{}, fmt.Errorf("could not find brigade: %w", err)
 	}
 
 	buf, err := s.generateAct(inspection, brig)

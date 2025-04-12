@@ -2,6 +2,7 @@ package inspection
 
 import (
 	"time"
+	"tns-energo/service/brigade"
 	"tns-energo/service/consumer"
 	"tns-energo/service/device"
 	"tns-energo/service/file"
@@ -12,7 +13,7 @@ import (
 type Inspection struct {
 	Id                      string            `json:"id"`
 	TaskId                  string            `json:"task_id"`
-	BrigadeId               string            `json:"brigade_id"`
+	Brigade                 brigade.Brigade   `json:"brigade"`
 	Type                    Type              `json:"type"`
 	ActNumber               string            `json:"act_number"`
 	Resolution              Resolution        `json:"resolution"`

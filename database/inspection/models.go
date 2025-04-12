@@ -2,6 +2,7 @@ package inspection
 
 import (
 	"time"
+	"tns-energo/database/brigade"
 	"tns-energo/database/consumer"
 	"tns-energo/database/device"
 	"tns-energo/database/file"
@@ -12,7 +13,7 @@ import (
 type Inspection struct {
 	Id                      string            `json:"_id,omitempty" bson:"_id,omitempty"`
 	TaskId                  string            `json:"task_id" bson:"task_id"`
-	BrigadeId               string            `json:"brigade_id" bson:"brigade_id"`
+	Brigade                 brigade.Brigade   `json:"brigade" bson:"brigade"`
 	Type                    int               `json:"type" bson:"type"`
 	ActNumber               string            `json:"act_number" bson:"act_number"`
 	Resolution              int               `json:"resolution" bson:"resolution"`
