@@ -1,9 +1,8 @@
 package image
 
 import (
-	"bytes"
-	"encoding/base64"
 	"fmt"
+	"strings"
 	"time"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
@@ -24,14 +23,17 @@ func NewService(images Storage) *Service {
 }
 
 func (s *Service) Upload(ctx libctx.Context, _ liblog.Logger, request UploadRequest) (file.File, error) {
-	payload, err := base64.StdEncoding.DecodeString(request.Payload)
+	payload, err := request.Payload.Open()
 	if err != nil {
-		return file.File{}, fmt.Errorf("failed to decode payload: %w", err)
+		return file.File{}, fmt.Errorf("failed to open payload: %w", err)
 	}
 
+	split := strings.Split(request.Payload.Filename, ".")
+	extension := split[len(split)-1]
+
 	imageNumbersCache[request.DeviceNumber] = imageNumbersCache[request.DeviceNumber] + 1
-	name := fmt.Sprintf("%s_%s_%d.png", request.Address, time.Now().In(libtime.MoscowLocation()).Format("02.01.2006_15.04"), imageNumbersCache[request.DeviceNumber])
-	url, err := s.images.Add(ctx, name, bytes.NewReader(payload), len(payload))
+	name := fmt.Sprintf("%s_%s_%d.%s", request.Address, time.Now().In(libtime.MoscowLocation()).Format("02.01.2006_15.04"), imageNumbersCache[request.DeviceNumber], extension)
+	url, err := s.images.Add(ctx, name, payload, request.Payload.Size)
 	if err != nil {
 		return file.File{}, fmt.Errorf("failed to upload image: %w", err)
 	}

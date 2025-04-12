@@ -2,7 +2,9 @@ package router
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	libctx "tns-energo/lib/ctx"
 	libhttp "tns-energo/lib/http"
@@ -11,6 +13,8 @@ import (
 
 	"github.com/gorilla/mux"
 )
+
+const _defaultMultipartFormSize = 20 * 1024 * 1024
 
 type Context struct {
 	response ResponseWriter
@@ -75,6 +79,18 @@ func (c Context) Vars(a any) error {
 	}
 
 	return nil
+}
+
+func (c Context) FormData() (*multipart.Form, error) {
+	err := c.request.ParseMultipartForm(_defaultMultipartFormSize)
+	if err != nil {
+		return nil, err
+	}
+	if c.request.MultipartForm == nil {
+		return nil, errors.New("missing multipart form")
+	}
+
+	return c.request.MultipartForm, nil
 }
 
 func (c Context) ReadJson(a any) error {

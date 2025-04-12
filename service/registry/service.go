@@ -1,8 +1,8 @@
 package registry
 
 import (
-	"bytes"
 	"fmt"
+	"mime/multipart"
 	"strings"
 	"time"
 	libctx "tns-energo/lib/ctx"
@@ -22,8 +22,13 @@ func NewService(registry Storage) *Service {
 	}
 }
 
-func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) error {
-	file, err := excelize.OpenReader(bytes.NewReader(payload))
+func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, fileHeader *multipart.FileHeader) error {
+	payload, err := fileHeader.Open()
+	if err != nil {
+		return fmt.Errorf("failed to open payload: %w", err)
+	}
+
+	file, err := excelize.OpenReader(payload)
 	if err != nil {
 		return fmt.Errorf("could not open excel file: %w", err)
 	}

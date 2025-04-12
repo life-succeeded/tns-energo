@@ -9,12 +9,16 @@ import (
 
 func ParseRegistryHandler(registryService *registry.Service) router.Handler {
 	return func(c router.Context) error {
-		payload, err := c.ReadBytes()
+		form, err := c.FormData()
 		if err != nil {
-			return fmt.Errorf("failed to read: %w", err)
+			return fmt.Errorf("could not parse form data: %w", err)
 		}
 
-		err = registryService.Parse(c.Ctx(), c.Log(), payload)
+		if len(form.File["payload"]) != 1 {
+			return fmt.Errorf("invalid form data")
+		}
+
+		err = registryService.Parse(c.Ctx(), c.Log(), form.File["payload"][0])
 		if err != nil {
 			return fmt.Errorf("failed to parse: %w", err)
 		}

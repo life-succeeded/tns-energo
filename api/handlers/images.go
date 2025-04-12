@@ -9,9 +9,22 @@ import (
 
 func UploadImageHandler(imageService *image.Service) router.Handler {
 	return func(c router.Context) error {
-		var request image.UploadRequest
-		if err := c.ReadJson(&request); err != nil {
-			return fmt.Errorf("failed to parse request body: %w", err)
+		form, err := c.FormData()
+		if err != nil {
+			return fmt.Errorf("could not parse form data: %w", err)
+		}
+
+		if len(form.Value) != 2 ||
+			len(form.Value["address"]) != 1 ||
+			len(form.Value["device_number"]) != 1 ||
+			len(form.File["payload"]) != 1 {
+			return fmt.Errorf("invalid form data")
+		}
+
+		request := image.UploadRequest{
+			Address:      form.Value["address"][0],
+			DeviceNumber: form.Value["device_number"][0],
+			Payload:      form.File["payload"][0],
 		}
 
 		response, err := imageService.Upload(c.Ctx(), c.Log(), request)

@@ -91,7 +91,7 @@ func (s *Service) Inspect(ctx libctx.Context, _ liblog.Logger, request InspectRe
 	inspection.ResolutionFile = file.File{
 		Name: fmt.Sprintf("Акт %s_№%s_%s_%s.docx", actType, inspection.ActNumber, inspection.Address, inspection.InspectionDate.Format("02.01.2006_15.04")),
 	}
-	url, err := s.documents.Add(ctx, inspection.ResolutionFile.Name, buf, buf.Len())
+	url, err := s.documents.Add(ctx, inspection.ResolutionFile.Name, buf, int64(buf.Len()))
 	if err != nil {
 		return file.File{}, fmt.Errorf("could not create object: %w", err)
 	}

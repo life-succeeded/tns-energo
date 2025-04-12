@@ -15,7 +15,7 @@ type Storage interface {
 }
 
 type DocumentStorage interface {
-	Add(ctx libctx.Context, fileName string, payload io.Reader, payloadLength int) (string, error)
+	Add(ctx libctx.Context, fileName string, payload io.Reader, payloadLength int64) (string, error)
 }
 
 type RegistryStorage interface {
