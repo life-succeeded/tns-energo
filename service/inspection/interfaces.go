@@ -2,6 +2,7 @@ package inspection
 
 import (
 	"io"
+	"time"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 	"tns-energo/service/brigade"
@@ -12,6 +13,7 @@ import (
 type Storage interface {
 	AddOne(ctx libctx.Context, inspection Inspection) error
 	GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]Inspection, error)
+	GetByInspectionDate(ctx libctx.Context, log liblog.Logger, inspectionDate time.Time) ([]Inspection, error)
 }
 
 type DocumentStorage interface {

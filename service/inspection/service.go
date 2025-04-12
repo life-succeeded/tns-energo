@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 	"tns-energo/config"
@@ -39,10 +40,24 @@ func NewService(settings config.Settings, inspections Storage, documents Documen
 	}
 }
 
-func (s *Service) Inspect(ctx libctx.Context, _ liblog.Logger, request InspectRequest) (file.File, error) {
+func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request InspectRequest) (file.File, error) {
 	brig, err := s.brigades.GetById(ctx, request.BrigadeId)
 	if err != nil {
 		return file.File{}, fmt.Errorf("could not get brigade: %w", err)
+	}
+
+	inspections, err := s.inspections.GetByInspectionDate(ctx, log, time.Now())
+	if err != nil {
+		return file.File{}, fmt.Errorf("could not get inspections: %w", err)
+	}
+
+	actNumber := 1
+	log.Debugf("len(inspections): %d", len(inspections))
+	if len(inspections) > 0 {
+		sort.Slice(inspections, func(i, j int) bool {
+			return inspections[i].ActNumber > inspections[j].ActNumber
+		})
+		actNumber = inspections[0].ActNumber + 1
 	}
 
 	now := time.Now().In(libtime.MoscowLocation())
@@ -50,7 +65,7 @@ func (s *Service) Inspect(ctx libctx.Context, _ liblog.Logger, request InspectRe
 		TaskId:                  request.TaskId,
 		Brigade:                 brig,
 		Type:                    request.Type,
-		ActNumber:               request.ActNumber,
+		ActNumber:               actNumber,
 		Resolution:              request.Resolution,
 		Address:                 request.Address,
 		Consumer:                request.Consumer,
@@ -88,7 +103,7 @@ func (s *Service) Inspect(ctx libctx.Context, _ liblog.Logger, request InspectRe
 		actType = "контроля"
 	}
 	inspection.ResolutionFile = file.File{
-		Name: fmt.Sprintf("Акт %s_№%s_%s_%s.docx", actType, inspection.ActNumber, inspection.Address, inspection.InspectionDate.Format("02.01.2006_15.04")),
+		Name: fmt.Sprintf("Акт %s_№%d_%s_%s.docx", actType, inspection.ActNumber, inspection.Address, inspection.InspectionDate.Format("02.01.2006_15.04")),
 	}
 	url, err := s.documents.Add(ctx, inspection.ResolutionFile.Name, buf, int64(buf.Len()))
 	if err != nil {

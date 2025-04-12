@@ -15,7 +15,7 @@ type Inspection struct {
 	TaskId                  string            `json:"task_id"`
 	Brigade                 brigade.Brigade   `json:"brigade"`
 	Type                    Type              `json:"type"`
-	ActNumber               string            `json:"act_number"`
+	ActNumber               int               `json:"act_number"`
 	Resolution              Resolution        `json:"resolution"`
 	Address                 string            `json:"address"`
 	Consumer                consumer.Consumer `json:"consumer"`
@@ -48,7 +48,6 @@ type InspectRequest struct {
 	TaskId                  string            `json:"task_id"`
 	BrigadeId               string            `json:"brigade_id"`
 	Type                    Type              `json:"type"`
-	ActNumber               string            `json:"act_number"`
 	Resolution              Resolution        `json:"resolution"`
 	Address                 string            `json:"address"`
 	Consumer                consumer.Consumer `json:"consumer"`

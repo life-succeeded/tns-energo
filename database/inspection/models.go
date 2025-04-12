@@ -15,7 +15,7 @@ type Inspection struct {
 	TaskId                  string            `json:"task_id" bson:"task_id"`
 	Brigade                 brigade.Brigade   `json:"brigade" bson:"brigade"`
 	Type                    int               `json:"type" bson:"type"`
-	ActNumber               string            `json:"act_number" bson:"act_number"`
+	ActNumber               int               `json:"act_number" bson:"act_number"`
 	Resolution              int               `json:"resolution" bson:"resolution"`
 	Address                 string            `json:"address" bson:"address"`
 	Consumer                consumer.Consumer `json:"consumer" bson:"consumer"`
