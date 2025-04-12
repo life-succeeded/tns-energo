@@ -46,7 +46,7 @@ func (s *Mongo) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId 
 	cursor, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
-		Find(ctx, bson.M{"brigade._id": brigadeId})
+		Find(ctx, bson.M{"brigade_id": brigadeId})
 	if err != nil {
 		return nil, err
 	}
