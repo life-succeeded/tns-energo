@@ -42,23 +42,12 @@ func IsAdmin(failHandler librouter.Handler) librouter.Middleware {
 // Проверяет указана ли в запросе валидная авторизация с признаком админа. В случае провала проверки - вызывает failHandler, если он указан
 func EnableCors(up librouter.Context, h librouter.Handler) librouter.Handler {
 	return func(c librouter.Context) error {
-		up.WriteHeader("Access-Control-Allow-Origin", "*")
-		up.WriteHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		up.WriteHeader("Access-Control-Allow-Headers", "*")
-
-		up.Response().Header().Set("Access-Control-Allow-Origin", "*")
-		up.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		up.Response().Header().Set("Access-Control-Allow-Headers", "*")
 		c.Response().Header().Set("Access-Control-Allow-Origin", "*")
-		c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		c.Response().Header().Set("Access-Control-Allow-Headers", "*")
+		c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE, HEAD, PATCH, CONNECT, TRACE")
+		c.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
 
 		if c.Request().Method == http.MethodOptions {
-			c.Response().WriteHeader(http.StatusOK)
-		}
-
-		if up.Request().Method == http.MethodOptions {
-			up.Response().WriteHeader(http.StatusOK)
+			c.Response().WriteHeader(http.StatusNoContent)
 		}
 
 		return h(c)
