@@ -13,4 +13,5 @@ type Device struct {
 	OtherPlace      string          `json:"other_place,omitempty" bson:"other_place,omitempty"`
 	Seals           []seal.Seal     `json:"seals,omitempty" bson:"seals,omitempty"`
 	Value           decimal.Decimal `json:"value,omitempty" bson:"value,omitempty"`
+	Consumption     decimal.Decimal `json:"consumption,omitempty" bson:"consumption,omitempty"`
 }

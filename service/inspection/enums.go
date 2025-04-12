@@ -1,5 +1,14 @@
 package inspection
 
+type Type int
+
+const (
+	Limitation Type = iota
+	Resumption
+	Verification
+	UnauthorizedConnection
+)
+
 type Resolution int
 
 const (

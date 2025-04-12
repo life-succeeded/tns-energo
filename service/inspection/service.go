@@ -39,27 +39,39 @@ func NewService(settings config.Settings, inspections Storage, documents Documen
 	}
 }
 
-func (s *Service) InspectUniversal(ctx libctx.Context, _ liblog.Logger, request InspectUniversalRequest) (file.File, error) {
+func (s *Service) Inspect(ctx libctx.Context, _ liblog.Logger, request InspectRequest) (file.File, error) {
 	now := time.Now().In(libtime.MoscowLocation())
 	inspection := Inspection{
-		TaskId:              request.TaskId,
-		BrigadeId:           request.BrigadeId,
-		ActNumber:           request.ActNumber,
-		Resolution:          request.Resolution,
-		Address:             request.Address,
-		Consumer:            request.Consumer,
-		HaveAutomaton:       request.HaveAutomaton,
-		AccountNumber:       request.AccountNumber,
-		IsIncompletePayment: request.IsIncompletePayment,
-		OtherReason:         request.OtherReason,
-		MethodBy:            request.MethodBy,
-		Method:              request.Method,
-		Device:              request.Device,
-		ReasonType:          request.ReasonType,
-		Reason:              request.Reason,
-		ActCopies:           request.ActCopies,
-		Images:              request.Images,
-		InspectionDate:      now,
+		TaskId:                  request.TaskId,
+		BrigadeId:               request.BrigadeId,
+		Type:                    request.Type,
+		ActNumber:               request.ActNumber,
+		Resolution:              request.Resolution,
+		Address:                 request.Address,
+		Consumer:                request.Consumer,
+		HaveAutomaton:           request.HaveAutomaton,
+		AccountNumber:           request.AccountNumber,
+		IsIncompletePayment:     request.IsIncompletePayment,
+		OtherReason:             request.OtherReason,
+		MethodBy:                request.MethodBy,
+		Method:                  request.Method,
+		Device:                  request.Device,
+		ReasonType:              request.ReasonType,
+		Reason:                  request.Reason,
+		ActCopies:               request.ActCopies,
+		Images:                  request.Images,
+		InspectionDate:          now,
+		IsChecked:               request.IsChecked,
+		IsViolationDetected:     request.IsViolationDetected,
+		IsExpenseAvailable:      request.IsExpenseAvailable,
+		OtherViolation:          request.OtherViolation,
+		UnauthorizedDescription: request.UnauthorizedDescription,
+		OldDeviceValue:          request.OldDeviceValue,
+		OldDeviceValueDate:      request.OldDeviceValueDate,
+		UnauthorizedExplanation: request.UnauthorizedExplanation,
+		NoSignature:             request.NoSignature,
+		NoConsumer:              request.NoConsumer,
+		RefusalReason:           request.RefusalReason,
 	}
 
 	brig, err := s.brigades.GetById(ctx, inspection.BrigadeId)
@@ -72,8 +84,12 @@ func (s *Service) InspectUniversal(ctx libctx.Context, _ liblog.Logger, request 
 		return file.File{}, fmt.Errorf("could not generate act: %w", err)
 	}
 
+	actType := "о введении ограничения и возобновления"
+	if inspection.Type == Verification || inspection.Type == UnauthorizedConnection {
+		actType = "контроля"
+	}
 	inspection.ResolutionFile = file.File{
-		Name: fmt.Sprintf("Акт_№%s_%s_%s.docx", inspection.ActNumber, inspection.Address, inspection.InspectionDate.Format("02.01.2006_15.04")),
+		Name: fmt.Sprintf("Акт %s_№%s_%s_%s.docx", actType, inspection.ActNumber, inspection.Address, inspection.InspectionDate.Format("02.01.2006_15.04")),
 	}
 	url, err := s.documents.Add(ctx, inspection.ResolutionFile.Name, buf, buf.Len())
 	if err != nil {
@@ -136,6 +152,10 @@ func (s *Service) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeI
 }
 
 func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*bytes.Buffer, error) {
+	if inspection.Type == Verification || inspection.Type == UnauthorizedConnection {
+		return s.generateControlAct(inspection, brig)
+	}
+
 	isLimitation := "■"
 	isResumption := "□"
 	if inspection.Resolution == ResumedResolution {
@@ -266,6 +286,188 @@ func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*byt
 	}
 
 	doc, err := docx.Open(s.settings.Templates.Universal)
+	if err != nil {
+		return nil, fmt.Errorf("could not open act template: %w", err)
+	}
+
+	err = doc.ReplaceAll(replaceMap)
+	if err != nil {
+		return nil, fmt.Errorf("could not replace vars in act: %w", err)
+	}
+
+	buf := &bytes.Buffer{}
+	err = doc.Write(buf)
+	if err != nil {
+		return nil, fmt.Errorf("could not write act to buffer: %w", err)
+	}
+
+	return buf, nil
+}
+
+func (s *Service) generateControlAct(inspection Inspection, brig brigade.Brigade) (*bytes.Buffer, error) {
+	isVerification := "■"
+	isUnauthorizedConnection := "□"
+	if inspection.Type == UnauthorizedConnection {
+		isVerification = "□"
+		isUnauthorizedConnection = "■"
+	}
+
+	consumerFIO := fmt.Sprintf("%s %s", inspection.Consumer.Surname, inspection.Consumer.Name)
+	if len(inspection.Consumer.Patronymic) != 0 {
+		consumerFIO = fmt.Sprintf("%s %s", consumerFIO, inspection.Consumer.Patronymic)
+	}
+
+	haveAutomaton := "□"
+	noAutomaton := "■"
+	if inspection.HaveAutomaton {
+		haveAutomaton = "■"
+		noAutomaton = "□"
+	}
+
+	isIncomplete := "□"
+	if inspection.IsIncompletePayment {
+		isIncomplete = "■"
+	}
+
+	isOtherReason := "□"
+	if len(inspection.OtherReason) != 0 {
+		isOtherReason = "■"
+	}
+
+	isByConsumer := "□"
+	isByInspector := "■"
+	if inspection.MethodBy == Consumer {
+		isByConsumer = "■"
+		isByInspector = "□"
+	}
+
+	isEnergyLimited := "□"
+	isEnergyStopped := "□"
+	switch inspection.Resolution {
+	case LimitedResolution:
+		isEnergyLimited = "■"
+	case StoppedResolution:
+		isEnergyStopped = "■"
+	}
+
+	isChecked := "□"
+	if inspection.IsChecked {
+		isChecked = "■"
+	}
+
+	isViolationDetected := "□"
+	isViolationNotDetected := "■"
+	if inspection.IsViolationDetected {
+		isViolationDetected = "■"
+		isViolationNotDetected = "□"
+	}
+
+	isExpenseAvailable := "□"
+	if inspection.IsExpenseAvailable {
+		isExpenseAvailable = "■"
+	}
+
+	isOtherViolation := "□"
+	if len(inspection.OtherViolation) != 0 {
+		isOtherViolation = "■"
+	}
+
+	isInside := "□"
+	isOutside := "□"
+	switch inspection.Device.DeploymentPlace {
+	case device.Inside:
+		isInside = "■"
+	case device.Outside:
+		isOutside = "■"
+	}
+
+	seals := make([]string, 0, len(inspection.Device.Seals))
+	for _, seal := range inspection.Device.Seals {
+		seals = append(seals, fmt.Sprintf("№%s %s", seal.Number, seal.Place))
+	}
+
+	firstInspector := fmt.Sprintf("%s %s.", brig.FirstInspector.Surname, string([]rune(brig.FirstInspector.Name)[0]))
+	if len(brig.FirstInspector.Patronymic) != 0 {
+		firstInspector = fmt.Sprintf("%s%s.", firstInspector, string([]rune(brig.FirstInspector.Patronymic)[0]))
+	}
+
+	secondInspector := fmt.Sprintf("%s %s.", brig.SecondInspector.Surname, string([]rune(brig.SecondInspector.Name)[0]))
+	if len(brig.SecondInspector.Patronymic) != 0 {
+		secondInspector = fmt.Sprintf("%s%s.", secondInspector, string([]rune(brig.SecondInspector.Patronymic)[0]))
+	}
+
+	noSignature := "□"
+	if inspection.NoSignature {
+		noSignature = "■"
+	}
+
+	noConsumer := "□"
+	if inspection.NoConsumer {
+		noConsumer = "■"
+	}
+
+	replaceMap := docx.PlaceholderMap{
+		"act_number":                 inspection.ActNumber,
+		"is_verification":            isVerification,
+		"is_unauthorized_connection": isUnauthorizedConnection,
+		"act_day":                    inspection.InspectionDate.Format("02"),
+		"act_month":                  russianMonth(inspection.InspectionDate.Month()),
+		"act_year":                   inspection.InspectionDate.Year(),
+		"act_hour":                   inspection.InspectionDate.Format("15"),
+		"act_minute":                 inspection.InspectionDate.Format("04"),
+		"act_place":                  inspection.Address,
+		"consumer_fio":               consumerFIO,
+		"address":                    inspection.Address,
+		"have_automaton":             haveAutomaton,
+		"no_automaton":               noAutomaton,
+		"account_number":             inspection.AccountNumber,
+		"consumer_phone":             inspection.Consumer.PhoneNumber,
+		"is_incomplete_payment":      isIncomplete,
+		"is_other_reason":            isOtherReason,
+		"other_reason":               inspection.OtherReason,
+		"is_energy_limited":          isEnergyLimited,
+		"is_energy_stopped":          isEnergyStopped,
+		"energy_hour":                inspection.InspectionDate.Format("15"),
+		"energy_minute":              inspection.InspectionDate.Format("04"),
+		"energy_day":                 inspection.InspectionDate.Format("02"),
+		"energy_month":               russianMonth(inspection.InspectionDate.Month()),
+		"energy_year":                inspection.InspectionDate.Year(),
+		"is_by_consumer":             isByConsumer,
+		"is_by_inspector":            isByInspector,
+		"is_checked":                 isChecked,
+		"check_hour":                 inspection.InspectionDate.Format("15"),
+		"check_minute":               inspection.InspectionDate.Format("04"),
+		"check_day":                  inspection.InspectionDate.Format("02"),
+		"check_month":                russianMonth(inspection.InspectionDate.Month()),
+		"check_year":                 inspection.InspectionDate.Year(),
+		"is_violation_not_detected":  isViolationNotDetected,
+		"is_violation_detected":      isViolationDetected,
+		"is_expense_available":       isExpenseAvailable,
+		"is_other_violation":         isOtherViolation,
+		"other_violation":            inspection.OtherViolation,
+		"unauthorized_description":   inspection.UnauthorizedDescription,
+		"is_inside":                  isInside,
+		"is_outside":                 isOutside,
+		"other_place":                inspection.Device.OtherPlace,
+		"device_type":                inspection.Device.Type,
+		"device_number":              inspection.Device.Number,
+		"device_value":               inspection.Device.Value,
+		"old_value_day":              inspection.OldDeviceValueDate.Format("02"),
+		"old_value_month":            inspection.OldDeviceValueDate.Format("01"),
+		"old_value_year":             inspection.InspectionDate.Year(),
+		"old_device_value":           inspection.OldDeviceValue,
+		"device_consumption":         inspection.Device.Consumption,
+		"seals":                      strings.Join(seals, ", "),
+		"unauthorized_explanation":   inspection.UnauthorizedExplanation,
+		"act_copies":                 inspection.ActCopies,
+		"inspector1_initials":        firstInspector,
+		"inspector2_initials":        secondInspector,
+		"no_signature":               noSignature,
+		"no_consumer":                noConsumer,
+		"refusal_reason":             inspection.RefusalReason,
+	}
+
+	doc, err := docx.Open(s.settings.Templates.Control)
 	if err != nil {
 		return nil, fmt.Errorf("could not open act template: %w", err)
 	}

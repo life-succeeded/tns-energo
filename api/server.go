@@ -36,7 +36,7 @@ func (s *ServerBuilder) AddDebug() {
 
 func (s *ServerBuilder) AddInspections(inspectionService *inspection.Service) {
 	subRouter := s.router.SubRouter("/inspections")
-	subRouter.HandlePost("/universal", handlers.InspectUniversalHandler(inspectionService))
+	subRouter.HandlePost("", handlers.InspectHandler(inspectionService))
 	subRouter.HandleGet("/by-brigade-id/{brigade_id}", handlers.GetInspectionsByBrigadeId(inspectionService))
 }
 

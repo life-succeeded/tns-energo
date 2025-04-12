@@ -13,6 +13,7 @@ func MapToDb(d domain.Device) Device {
 		OtherPlace:      d.OtherPlace,
 		Seals:           seal.MapSliceToDb(d.Seals),
 		Value:           d.Value,
+		Consumption:     d.Consumption,
 	}
 }
 
@@ -24,5 +25,6 @@ func MapToDomain(d Device) domain.Device {
 		OtherPlace:      d.OtherPlace,
 		Seals:           seal.MapSliceToDomain(d.Seals),
 		Value:           d.Value,
+		Consumption:     d.Consumption,
 	}
 }

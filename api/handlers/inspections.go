@@ -7,14 +7,14 @@ import (
 	"tns-energo/service/inspection"
 )
 
-func InspectUniversalHandler(inspectionsService *inspection.Service) router.Handler {
+func InspectHandler(inspectionsService *inspection.Service) router.Handler {
 	return func(c router.Context) error {
-		var request inspection.InspectUniversalRequest
+		var request inspection.InspectRequest
 		if err := c.ReadJson(&request); err != nil {
 			return fmt.Errorf("failed to read json: %w", err)
 		}
 
-		response, err := inspectionsService.InspectUniversal(c.Ctx(), c.Log(), request)
+		response, err := inspectionsService.Inspect(c.Ctx(), c.Log(), request)
 		if err != nil {
 			return fmt.Errorf("failed to inspect: %w", err)
 		}
