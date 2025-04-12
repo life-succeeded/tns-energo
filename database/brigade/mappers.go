@@ -11,6 +11,7 @@ func MapToDb(b domain.Brigade) Brigade {
 		FirstInspector:  inspector.MapToDb(b.FirstInspector),
 		SecondInspector: inspector.MapToDb(b.SecondInspector),
 		CreatedAt:       b.CreatedAt,
+		UpdatedAt:       b.UpdatedAt,
 	}
 }
 
@@ -20,5 +21,15 @@ func MapToDomain(b Brigade) domain.Brigade {
 		FirstInspector:  inspector.MapToDomain(b.FirstInspector),
 		SecondInspector: inspector.MapToDomain(b.SecondInspector),
 		CreatedAt:       b.CreatedAt,
+		UpdatedAt:       b.UpdatedAt,
 	}
+}
+
+func MapSliceToDomain(brigades []Brigade) []domain.Brigade {
+	result := make([]domain.Brigade, 0, len(brigades))
+	for _, b := range brigades {
+		result = append(result, MapToDomain(b))
+	}
+
+	return result
 }

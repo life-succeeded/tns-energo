@@ -70,6 +70,8 @@ func (s *ServerBuilder) AddBrigades(brigadeService *brigade.Service) {
 	subRouter := s.router.SubRouter("/brigades")
 	subRouter.HandlePost("", handlers.CreateBrigadeHandler(brigadeService))
 	subRouter.HandleGet("/{brigade_id}", handlers.GetBrigadeByIdHandler(brigadeService))
+	subRouter.HandleGet("", handlers.GetAllBrigadesHandler(brigadeService))
+	subRouter.HandlePut("/{brigade_id}", handlers.UpdateBrigadeHandler(brigadeService))
 }
 
 func (s *ServerBuilder) Build() libserver.Server {
