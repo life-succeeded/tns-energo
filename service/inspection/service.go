@@ -156,11 +156,11 @@ func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*byt
 		return s.generateControlAct(inspection, brig)
 	}
 
-	isLimitation := "■"
-	isResumption := "□"
+	isLimitation := "☒"
+	isResumption := "☐"
 	if inspection.Resolution == ResumedResolution {
-		isLimitation = "□"
-		isResumption = "■"
+		isLimitation = "☐"
+		isResumption = "☒"
 	}
 
 	consumerFIO := fmt.Sprintf("%s %s", inspection.Consumer.Surname, inspection.Consumer.Name)
@@ -168,49 +168,49 @@ func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*byt
 		consumerFIO = fmt.Sprintf("%s %s", consumerFIO, inspection.Consumer.Patronymic)
 	}
 
-	haveAutomaton := "□"
-	noAutomaton := "■"
+	haveAutomaton := "☐"
+	noAutomaton := "☒"
 	if inspection.HaveAutomaton {
-		haveAutomaton = "■"
-		noAutomaton = "□"
+		haveAutomaton = "☒"
+		noAutomaton = "☐"
 	}
 
-	isIncomplete := "□"
+	isIncomplete := "☐"
 	if inspection.IsIncompletePayment {
-		isIncomplete = "■"
+		isIncomplete = "☒"
 	}
 
-	isOtherReason := "□"
+	isOtherReason := "☐"
 	if len(inspection.OtherReason) != 0 {
-		isOtherReason = "■"
+		isOtherReason = "☒"
 	}
 
-	isByConsumer := "□"
-	isByInspector := "■"
+	isByConsumer := "☐"
+	isByInspector := "☒"
 	if inspection.MethodBy == Consumer {
-		isByConsumer = "■"
-		isByInspector = "□"
+		isByConsumer = "☒"
+		isByInspector = "☐"
 	}
 
-	isEnergyLimited := "□"
-	isEnergyStopped := "□"
-	isEnergyResumed := "□"
+	isEnergyLimited := "☐"
+	isEnergyStopped := "☐"
+	isEnergyResumed := "☐"
 	switch inspection.Resolution {
 	case LimitedResolution:
-		isEnergyLimited = "■"
+		isEnergyLimited = "☒"
 	case StoppedResolution:
-		isEnergyStopped = "■"
+		isEnergyStopped = "☒"
 	case ResumedResolution:
-		isEnergyResumed = "■"
+		isEnergyResumed = "☒"
 	}
 
-	isInside := "□"
-	isOutside := "□"
+	isInside := "☐"
+	isOutside := "☐"
 	switch inspection.Device.DeploymentPlace {
 	case device.Inside:
-		isInside = "■"
+		isInside = "☒"
 	case device.Outside:
-		isOutside = "■"
+		isOutside = "☒"
 	}
 
 	seals := make([]string, 0, len(inspection.Device.Seals))
@@ -218,16 +218,16 @@ func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*byt
 		seals = append(seals, fmt.Sprintf("№%s %s", seal.Number, seal.Place))
 	}
 
-	isConsumerLimited := "□"
-	isInspectorLimited := "□"
-	isNotIntroduced := "□"
+	isConsumerLimited := "☐"
+	isInspectorLimited := "☐"
+	isNotIntroduced := "☐"
 	switch inspection.ReasonType {
 	case NotIntroduced:
-		isNotIntroduced = "■"
+		isNotIntroduced = "☒"
 	case ConsumerLimited:
-		isConsumerLimited = "■"
+		isConsumerLimited = "☒"
 	case InspectorLimited:
-		isInspectorLimited = "■"
+		isInspectorLimited = "☒"
 	}
 
 	firstInspector := fmt.Sprintf("%s %s.", brig.FirstInspector.Surname, string([]rune(brig.FirstInspector.Name)[0]))
@@ -305,11 +305,11 @@ func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*byt
 }
 
 func (s *Service) generateControlAct(inspection Inspection, brig brigade.Brigade) (*bytes.Buffer, error) {
-	isVerification := "■"
-	isUnauthorizedConnection := "□"
+	isVerification := "☒"
+	isUnauthorizedConnection := "☐"
 	if inspection.Type == UnauthorizedConnection {
-		isVerification = "□"
-		isUnauthorizedConnection = "■"
+		isVerification = "☐"
+		isUnauthorizedConnection = "☒"
 	}
 
 	consumerFIO := fmt.Sprintf("%s %s", inspection.Consumer.Surname, inspection.Consumer.Name)
@@ -317,68 +317,68 @@ func (s *Service) generateControlAct(inspection Inspection, brig brigade.Brigade
 		consumerFIO = fmt.Sprintf("%s %s", consumerFIO, inspection.Consumer.Patronymic)
 	}
 
-	haveAutomaton := "□"
-	noAutomaton := "■"
+	haveAutomaton := "☐"
+	noAutomaton := "☒"
 	if inspection.HaveAutomaton {
-		haveAutomaton = "■"
-		noAutomaton = "□"
+		haveAutomaton = "☒"
+		noAutomaton = "☐"
 	}
 
-	isIncomplete := "□"
+	isIncomplete := "☐"
 	if inspection.IsIncompletePayment {
-		isIncomplete = "■"
+		isIncomplete = "☒"
 	}
 
-	isOtherReason := "□"
+	isOtherReason := "☐"
 	if len(inspection.OtherReason) != 0 {
-		isOtherReason = "■"
+		isOtherReason = "☒"
 	}
 
-	isByConsumer := "□"
-	isByInspector := "■"
+	isByConsumer := "☐"
+	isByInspector := "☒"
 	if inspection.MethodBy == Consumer {
-		isByConsumer = "■"
-		isByInspector = "□"
+		isByConsumer = "☒"
+		isByInspector = "☐"
 	}
 
-	isEnergyLimited := "□"
-	isEnergyStopped := "□"
+	isEnergyLimited := "☐"
+	isEnergyStopped := "☐"
 	switch inspection.Resolution {
 	case LimitedResolution:
-		isEnergyLimited = "■"
+		isEnergyLimited = "☒"
 	case StoppedResolution:
-		isEnergyStopped = "■"
+		isEnergyStopped = "☒"
 	}
 
-	isChecked := "□"
+	isChecked := "☐"
 	if inspection.IsChecked {
-		isChecked = "■"
+		isChecked = "☒"
 	}
 
-	isViolationDetected := "□"
-	isViolationNotDetected := "■"
+	isViolationDetected := "☐"
+	isViolationNotDetected := "☒"
 	if inspection.IsViolationDetected {
-		isViolationDetected = "■"
-		isViolationNotDetected = "□"
+		isViolationDetected = "☒"
+		isViolationNotDetected = "☐"
 	}
 
-	isExpenseAvailable := "□"
+	isExpenseAvailable := "☐"
 	if inspection.IsExpenseAvailable {
-		isExpenseAvailable = "■"
+		isExpenseAvailable = "☒"
 	}
 
-	isOtherViolation := "□"
+	isOtherViolation := "☐"
 	if len(inspection.OtherViolation) != 0 {
-		isOtherViolation = "■"
+		isOtherViolation = "☒"
 	}
 
-	isInside := "□"
-	isOutside := "□"
+	isInside := "☐"
+	isOutside := "☐"
 	switch inspection.Device.DeploymentPlace {
 	case device.Inside:
-		isInside = "■"
+		isInside = "☒"
 	case device.Outside:
-		isOutside = "■"
+		isOutside = "☒"
 	}
 
 	seals := make([]string, 0, len(inspection.Device.Seals))
@@ -396,14 +396,14 @@ func (s *Service) generateControlAct(inspection Inspection, brig brigade.Brigade
 		secondInspector = fmt.Sprintf("%s%s.", secondInspector, string([]rune(brig.SecondInspector.Patronymic)[0]))
 	}
 
-	noSignature := "□"
+	noSignature := "☐"
 	if inspection.NoSignature {
-		noSignature = "■"
+		noSignature = "☒"
 	}
 
-	noConsumer := "□"
+	noConsumer := "☐"
 	if inspection.NoConsumer {
-		noConsumer = "■"
+		noConsumer = "☒"
 	}
 
 	replaceMap := docx.PlaceholderMap{
