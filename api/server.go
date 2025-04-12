@@ -63,7 +63,7 @@ func (s *ServerBuilder) AddTasks(taskService *task.Service) {
 	subRouter.HandlePost("", handlers.AddTaskHandler(taskService))
 	subRouter.HandleGet("/by-brigade-id/{brigade_id}", handlers.GetTasksByBrigadeId(taskService))
 	subRouter.HandlePatch("/{task_id}/status", handlers.UpdateTaskStatusHandler(taskService))
-	subRouter.HandleGet("/{task_id}", handlers.GetById(taskService))
+	subRouter.HandleGet("/{task_id}", handlers.GetTaskById(taskService))
 }
 
 func (s *ServerBuilder) AddBrigades(brigadeService *brigade.Service) {

@@ -85,15 +85,15 @@ func (s *Mongo) GetById(ctx libctx.Context, id string) (task.Task, error) {
 		return task.Task{}, fmt.Errorf("failed to convert id to ObjectID: %v", err)
 	}
 
-	var resultTask Task
+	var t Task
 	err = s.cli.
 		Database(s.database).
 		Collection(s.collection).
 		FindOne(ctx, bson.M{"_id": objectID}).
-		Decode(&resultTask)
+		Decode(&t)
 	if err != nil {
 		return task.Task{}, err
 	}
 
-	return MapToDomain(resultTask), nil
+	return MapToDomain(t), nil
 }

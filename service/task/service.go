@@ -18,20 +18,18 @@ func NewService(tasks Storage) *Service {
 }
 
 func (s *Service) AddOne(ctx libctx.Context, _ liblog.Logger, request AddOneRequest) (Task, error) {
-	var (
-		now  = time.Now()
-		task = Task{
-			BrigadeId:     request.BrigadeId,
-			Address:       request.Address,
-			VisitDate:     request.VisitDate,
-			Status:        Planned,
-			Consumer:      request.Consumer,
-			AccountNumber: request.AccountNumber,
-			Comment:       request.Comment,
-			CreatedAt:     now,
-			UpdatedAt:     now,
-		}
-	)
+	now := time.Now()
+	task := Task{
+		BrigadeId:     request.BrigadeId,
+		Address:       request.Address,
+		VisitDate:     request.VisitDate,
+		Status:        Planned,
+		Consumer:      request.Consumer,
+		AccountNumber: request.AccountNumber,
+		Comment:       request.Comment,
+		CreatedAt:     now,
+		UpdatedAt:     now,
+	}
 
 	id, err := s.tasks.AddOne(ctx, task)
 	if err != nil {
@@ -52,10 +50,10 @@ func (s *Service) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeI
 	return tasks, nil
 }
 
-func (s *Service) GetById(ctx libctx.Context, id string) (Task, error) {
+func (s *Service) GetById(ctx libctx.Context, _ liblog.Logger, id string) (Task, error) {
 	task, err := s.tasks.GetById(ctx, id)
 	if err != nil {
-		return Task{}, fmt.Errorf("could not get tasks by id: %w", err)
+		return Task{}, fmt.Errorf("could not get task by id: %w", err)
 	}
 
 	return task, nil

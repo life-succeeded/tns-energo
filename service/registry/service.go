@@ -83,7 +83,7 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, payload []byte) e
 	return nil
 }
 
-func (s *Service) GetItemByAccountNumber(ctx libctx.Context, log liblog.Logger, accountNumber string) (Item, error) {
+func (s *Service) GetItemByAccountNumber(ctx libctx.Context, _ liblog.Logger, accountNumber string) (Item, error) {
 	item, err := s.registry.GetByAccountNumber(ctx, accountNumber)
 	if err != nil {
 		return Item{}, fmt.Errorf("could not get item by account number: %w", err)

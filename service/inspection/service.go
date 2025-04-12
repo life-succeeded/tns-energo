@@ -37,7 +37,7 @@ func NewService(settings config.Settings, inspections Storage, documents Documen
 	}
 }
 
-func (s *Service) InspectUniversal(ctx libctx.Context, log liblog.Logger, request InspectUniversalRequest) (file.File, error) {
+func (s *Service) InspectUniversal(ctx libctx.Context, _ liblog.Logger, request InspectUniversalRequest) (file.File, error) {
 	now := time.Now()
 	inspection := Inspection{
 		TaskId:              request.TaskId,

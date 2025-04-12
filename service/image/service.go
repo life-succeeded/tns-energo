@@ -23,7 +23,7 @@ func NewService(images Storage) *Service {
 	}
 }
 
-func (s *Service) Upload(ctx libctx.Context, log liblog.Logger, request UploadRequest) (file.File, error) {
+func (s *Service) Upload(ctx libctx.Context, _ liblog.Logger, request UploadRequest) (file.File, error) {
 	payload, err := base64.StdEncoding.DecodeString(request.Payload)
 	if err != nil {
 		return file.File{}, fmt.Errorf("failed to decode payload: %w", err)

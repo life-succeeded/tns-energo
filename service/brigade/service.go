@@ -17,7 +17,7 @@ func NewService(brigades Storage) *Service {
 	}
 }
 
-func (s *Service) Create(ctx libctx.Context, log liblog.Logger, request CreateRequest) (Brigade, error) {
+func (s *Service) Create(ctx libctx.Context, _ liblog.Logger, request CreateRequest) (Brigade, error) {
 	brigade := Brigade{
 		FirstInspector:  request.FirstInspector,
 		SecondInspector: request.SecondInspector,
@@ -34,7 +34,7 @@ func (s *Service) Create(ctx libctx.Context, log liblog.Logger, request CreateRe
 	return brigade, nil
 }
 
-func (s *Service) GetById(ctx libctx.Context, log liblog.Logger, id string) (Brigade, error) {
+func (s *Service) GetById(ctx libctx.Context, _ liblog.Logger, id string) (Brigade, error) {
 	brigade, err := s.brigades.GetById(ctx, id)
 	if err != nil {
 		return Brigade{}, fmt.Errorf("could not find brigade: %w", err)

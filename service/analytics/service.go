@@ -20,7 +20,7 @@ func NewService(reports ReportStorage) *Service {
 	}
 }
 
-func (s *Service) GenerateDailyReport(ctx libctx.Context, log liblog.Logger, date time.Time) (Report, error) {
+func (s *Service) GenerateDailyReport(ctx libctx.Context, _ liblog.Logger, date time.Time) (Report, error) {
 	report := Report{
 		Type: Daily,
 		File: file.File{
