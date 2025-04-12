@@ -79,25 +79,21 @@ func (s *Mongo) UpdateStatus(ctx libctx.Context, id string, status task.Status) 
 	return err
 }
 
-func (s *Mongo) GetById(ctx libctx.Context, log liblog.Logger, id string) ([]task.Task, error) {
-	cursor, err := s.cli.
+func (s *Mongo) GetById(ctx libctx.Context, id string) (task.Task, error) {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return task.Task{}, fmt.Errorf("failed to convert id to ObjectID: %v", err)
+	}
+
+	var resultTask Task
+	err = s.cli.
 		Database(s.database).
 		Collection(s.collection).
-		Find(ctx, bson.M{"_id": id})
+		FindOne(ctx, bson.M{"_id": objectID}).
+		Decode(&resultTask)
 	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := cursor.Close(ctx); err != nil {
-			log.Errorf("failed to close cursor: %v", err)
-		}
-	}()
-
-	var tasks []Task
-	err = cursor.All(ctx, &tasks)
-	if err != nil {
-		return nil, err
+		return task.Task{}, err
 	}
 
-	return MapSliceToDomain(tasks), nil
+	return MapToDomain(resultTask), nil
 }

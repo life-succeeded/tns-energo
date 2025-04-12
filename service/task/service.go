@@ -52,13 +52,13 @@ func (s *Service) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeI
 	return tasks, nil
 }
 
-func (s *Service) GetById(ctx libctx.Context, log liblog.Logger, id string) ([]Task, error) {
-	tasks, err := s.tasks.GetById(ctx, log, id)
+func (s *Service) GetById(ctx libctx.Context, id string) (Task, error) {
+	task, err := s.tasks.GetById(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("could not get tasks by brigade id: %w", err)
+		return Task{}, fmt.Errorf("could not get tasks by id: %w", err)
 	}
 
-	return tasks, nil
+	return task, nil
 }
 
 func (s *Service) UpdateStatus(ctx libctx.Context, _ liblog.Logger, id string, request UpdateStatusRequest) error {

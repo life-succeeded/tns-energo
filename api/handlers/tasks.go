@@ -77,7 +77,7 @@ func GetById(taskService *task.Service) router.Handler {
 			return fmt.Errorf("failed to read vars: %w", err)
 		}
 
-		response, err := taskService.GetById(c.Ctx(), c.Log(), vars.TaskId)
+		response, err := taskService.GetById(c.Ctx(), vars.TaskId)
 		if err != nil {
 			return fmt.Errorf("failed to get tasks by id: %w", err)
 		}
