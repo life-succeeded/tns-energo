@@ -65,13 +65,12 @@ func (s *Service) Inspect(ctx libctx.Context, _ liblog.Logger, request InspectRe
 		IsViolationDetected:     request.IsViolationDetected,
 		IsExpenseAvailable:      request.IsExpenseAvailable,
 		OtherViolation:          request.OtherViolation,
+		IsUnauthorizedConsumers: request.IsUnauthorizedConsumers,
 		UnauthorizedDescription: request.UnauthorizedDescription,
 		OldDeviceValue:          request.OldDeviceValue,
 		OldDeviceValueDate:      request.OldDeviceValueDate,
 		UnauthorizedExplanation: request.UnauthorizedExplanation,
-		NoSignature:             request.NoSignature,
-		NoConsumer:              request.NoConsumer,
-		RefusalReason:           request.RefusalReason,
+		EnergyActionDate:        request.EnergyActionDate,
 	}
 
 	brig, err := s.brigades.GetById(ctx, inspection.BrigadeId)
@@ -372,6 +371,13 @@ func (s *Service) generateControlAct(inspection Inspection, brig brigade.Brigade
 		isOtherViolation = "☒"
 	}
 
+	isUnauthorizedConsumers := "☐"
+	isNotUnauthorizedConsumers := "☒"
+	if inspection.IsUnauthorizedConsumers {
+		isUnauthorizedConsumers = "☒"
+		isNotUnauthorizedConsumers = "☐"
+	}
+
 	isInside := "☐"
 	isOutside := "☐"
 	switch inspection.Device.DeploymentPlace {
@@ -396,75 +402,64 @@ func (s *Service) generateControlAct(inspection Inspection, brig brigade.Brigade
 		secondInspector = fmt.Sprintf("%s%s.", secondInspector, string([]rune(brig.SecondInspector.Patronymic)[0]))
 	}
 
-	noSignature := "☐"
-	if inspection.NoSignature {
-		noSignature = "☒"
-	}
-
-	noConsumer := "☐"
-	if inspection.NoConsumer {
-		noConsumer = "☒"
-	}
-
 	replaceMap := docx.PlaceholderMap{
-		"act_number":                 inspection.ActNumber,
-		"is_verification":            isVerification,
-		"is_unauthorized_connection": isUnauthorizedConnection,
-		"act_day":                    inspection.InspectionDate.Format("02"),
-		"act_month":                  russianMonth(inspection.InspectionDate.Month()),
-		"act_year":                   inspection.InspectionDate.Year(),
-		"act_hour":                   inspection.InspectionDate.Format("15"),
-		"act_minute":                 inspection.InspectionDate.Format("04"),
-		"act_place":                  inspection.Address,
-		"consumer_fio":               consumerFIO,
-		"address":                    inspection.Address,
-		"have_automaton":             haveAutomaton,
-		"no_automaton":               noAutomaton,
-		"account_number":             inspection.AccountNumber,
-		"consumer_phone":             inspection.Consumer.PhoneNumber,
-		"is_incomplete_payment":      isIncomplete,
-		"is_other_reason":            isOtherReason,
-		"other_reason":               inspection.OtherReason,
-		"is_energy_limited":          isEnergyLimited,
-		"is_energy_stopped":          isEnergyStopped,
-		"energy_hour":                inspection.InspectionDate.Format("15"),
-		"energy_minute":              inspection.InspectionDate.Format("04"),
-		"energy_day":                 inspection.InspectionDate.Format("02"),
-		"energy_month":               russianMonth(inspection.InspectionDate.Month()),
-		"energy_year":                inspection.InspectionDate.Year(),
-		"is_by_consumer":             isByConsumer,
-		"is_by_inspector":            isByInspector,
-		"is_checked":                 isChecked,
-		"check_hour":                 inspection.InspectionDate.Format("15"),
-		"check_minute":               inspection.InspectionDate.Format("04"),
-		"check_day":                  inspection.InspectionDate.Format("02"),
-		"check_month":                russianMonth(inspection.InspectionDate.Month()),
-		"check_year":                 inspection.InspectionDate.Year(),
-		"is_violation_not_detected":  isViolationNotDetected,
-		"is_violation_detected":      isViolationDetected,
-		"is_expense_available":       isExpenseAvailable,
-		"is_other_violation":         isOtherViolation,
-		"other_violation":            inspection.OtherViolation,
-		"unauthorized_description":   inspection.UnauthorizedDescription,
-		"is_inside":                  isInside,
-		"is_outside":                 isOutside,
-		"other_place":                inspection.Device.OtherPlace,
-		"device_type":                inspection.Device.Type,
-		"device_number":              inspection.Device.Number,
-		"device_value":               inspection.Device.Value,
-		"old_value_day":              inspection.OldDeviceValueDate.Format("02"),
-		"old_value_month":            inspection.OldDeviceValueDate.Format("01"),
-		"old_value_year":             inspection.InspectionDate.Year(),
-		"old_device_value":           inspection.OldDeviceValue,
-		"device_consumption":         inspection.Device.Consumption,
-		"seals":                      strings.Join(seals, ", "),
-		"unauthorized_explanation":   inspection.UnauthorizedExplanation,
-		"act_copies":                 inspection.ActCopies,
-		"inspector1_initials":        firstInspector,
-		"inspector2_initials":        secondInspector,
-		"no_signature":               noSignature,
-		"no_consumer":                noConsumer,
-		"refusal_reason":             inspection.RefusalReason,
+		"act_number":                    inspection.ActNumber,
+		"is_verification":               isVerification,
+		"is_unauthorized_connection":    isUnauthorizedConnection,
+		"act_day":                       inspection.InspectionDate.Format("02"),
+		"act_month":                     russianMonth(inspection.InspectionDate.Month()),
+		"act_year":                      inspection.InspectionDate.Year(),
+		"act_hour":                      inspection.InspectionDate.Format("15"),
+		"act_minute":                    inspection.InspectionDate.Format("04"),
+		"act_place":                     inspection.Address,
+		"consumer_fio":                  consumerFIO,
+		"address":                       inspection.Address,
+		"have_automaton":                haveAutomaton,
+		"no_automaton":                  noAutomaton,
+		"account_number":                inspection.AccountNumber,
+		"consumer_phone":                inspection.Consumer.PhoneNumber,
+		"is_incomplete_payment":         isIncomplete,
+		"is_other_reason":               isOtherReason,
+		"other_reason":                  inspection.OtherReason,
+		"is_energy_limited":             isEnergyLimited,
+		"is_energy_stopped":             isEnergyStopped,
+		"energy_hour":                   inspection.EnergyActionDate.Format("15"),
+		"energy_minute":                 inspection.EnergyActionDate.Format("04"),
+		"energy_day":                    inspection.EnergyActionDate.Format("02"),
+		"energy_month":                  russianMonth(inspection.EnergyActionDate.Month()),
+		"energy_year":                   inspection.EnergyActionDate.Year(),
+		"is_by_consumer":                isByConsumer,
+		"is_by_inspector":               isByInspector,
+		"is_checked":                    isChecked,
+		"check_hour":                    inspection.InspectionDate.Format("15"),
+		"check_minute":                  inspection.InspectionDate.Format("04"),
+		"check_day":                     inspection.InspectionDate.Format("02"),
+		"check_month":                   russianMonth(inspection.InspectionDate.Month()),
+		"check_year":                    inspection.InspectionDate.Year(),
+		"is_violation_not_detected":     isViolationNotDetected,
+		"is_violation_detected":         isViolationDetected,
+		"is_expense_available":          isExpenseAvailable,
+		"is_other_violation":            isOtherViolation,
+		"other_violation":               inspection.OtherViolation,
+		"is_not_unauthorized_consumers": isNotUnauthorizedConsumers,
+		"is_unauthorized_consumers":     isUnauthorizedConsumers,
+		"unauthorized_description":      inspection.UnauthorizedDescription,
+		"is_inside":                     isInside,
+		"is_outside":                    isOutside,
+		"other_place":                   inspection.Device.OtherPlace,
+		"device_type":                   inspection.Device.Type,
+		"device_number":                 inspection.Device.Number,
+		"device_value":                  inspection.Device.Value,
+		"old_value_day":                 inspection.OldDeviceValueDate.Format("02"),
+		"old_value_month":               inspection.OldDeviceValueDate.Format("01"),
+		"old_value_year":                inspection.InspectionDate.Year(),
+		"old_device_value":              inspection.OldDeviceValue,
+		"device_consumption":            inspection.Device.Consumption,
+		"seals":                         strings.Join(seals, ", "),
+		"unauthorized_explanation":      inspection.UnauthorizedExplanation,
+		"act_copies":                    inspection.ActCopies,
+		"inspector1_initials":           firstInspector,
+		"inspector2_initials":           secondInspector,
 	}
 
 	doc, err := docx.Open(s.settings.Templates.Control)

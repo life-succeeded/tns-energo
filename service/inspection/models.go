@@ -35,13 +35,12 @@ type Inspection struct {
 	IsViolationDetected     bool              `json:"is_violation_detected"`
 	IsExpenseAvailable      bool              `json:"is_expense_available"`
 	OtherViolation          string            `json:"other_violation"`
+	IsUnauthorizedConsumers bool              `json:"is_unauthorized_consumers"`
 	UnauthorizedDescription string            `json:"unauthorized_description"`
 	OldDeviceValue          decimal.Decimal   `json:"old_device_value"`
 	OldDeviceValueDate      time.Time         `json:"old_device_value_date"`
 	UnauthorizedExplanation string            `json:"unauthorized_explanation"`
-	NoSignature             bool              `json:"no_signature"`
-	NoConsumer              bool              `json:"no_consumer"`
-	RefusalReason           string            `json:"refusal_reason"`
+	EnergyActionDate        time.Time         `json:"energy_action_date"`
 }
 
 type InspectRequest struct {
@@ -67,11 +66,10 @@ type InspectRequest struct {
 	IsViolationDetected     bool              `json:"is_violation_detected"`
 	IsExpenseAvailable      bool              `json:"is_expense_available"`
 	OtherViolation          string            `json:"other_violation"`
+	IsUnauthorizedConsumers bool              `json:"is_unauthorized_consumers"`
 	UnauthorizedDescription string            `json:"unauthorized_description"`
 	OldDeviceValue          decimal.Decimal   `json:"old_device_value"`
 	OldDeviceValueDate      time.Time         `json:"old_device_value_date"`
 	UnauthorizedExplanation string            `json:"unauthorized_explanation"`
-	NoSignature             bool              `json:"no_signature"`
-	NoConsumer              bool              `json:"no_consumer"`
-	RefusalReason           string            `json:"refusal_reason"`
+	EnergyActionDate        time.Time         `json:"energy_action_date"`
 }

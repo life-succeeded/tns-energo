@@ -34,13 +34,12 @@ func MapToDb(i domain.Inspection) Inspection {
 		IsViolationDetected:     i.IsViolationDetected,
 		IsExpenseAvailable:      i.IsExpenseAvailable,
 		OtherViolation:          i.OtherViolation,
+		IsUnauthorizedConsumers: i.IsUnauthorizedConsumers,
 		UnauthorizedDescription: i.UnauthorizedDescription,
 		OldDeviceValue:          i.OldDeviceValue,
 		OldDeviceValueDate:      i.OldDeviceValueDate,
 		UnauthorizedExplanation: i.UnauthorizedExplanation,
-		NoSignature:             i.NoSignature,
-		NoConsumer:              i.NoConsumer,
-		RefusalReason:           i.RefusalReason,
+		EnergyActionDate:        i.EnergyActionDate,
 	}
 }
 
@@ -71,13 +70,12 @@ func MapToDomain(i Inspection) domain.Inspection {
 		IsViolationDetected:     i.IsViolationDetected,
 		IsExpenseAvailable:      i.IsExpenseAvailable,
 		OtherViolation:          i.OtherViolation,
+		IsUnauthorizedConsumers: i.IsUnauthorizedConsumers,
 		UnauthorizedDescription: i.UnauthorizedDescription,
 		OldDeviceValue:          i.OldDeviceValue,
 		OldDeviceValueDate:      i.OldDeviceValueDate,
 		UnauthorizedExplanation: i.UnauthorizedExplanation,
-		NoSignature:             i.NoSignature,
-		NoConsumer:              i.NoConsumer,
-		RefusalReason:           i.RefusalReason,
+		EnergyActionDate:        i.EnergyActionDate,
 	}
 }
 
