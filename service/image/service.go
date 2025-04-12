@@ -26,25 +26,25 @@ func NewService(images Storage, analyzerService *analyzer.Service) *Service {
 }
 
 func (s *Service) Upload(ctx libctx.Context, _ liblog.Logger, request UploadRequest) (file.File, error) {
-	payload, err := request.Payload.Open()
+	imageOptions, err := s.analyzerService.GetImageOptions(ctx, request.File)
 	if err != nil {
-		return file.File{}, fmt.Errorf("failed to open payload: %w", err)
+		return file.File{}, fmt.Errorf("failed check blur score: %w", err)
+	}
+	if imageOptions.IsBlurred || imageOptions.HasError {
+		return file.File{}, analyzer.ErrBlurredPhoto
 	}
 
-	split := strings.Split(request.Payload.Filename, ".")
+	split := strings.Split(request.File.Filename, ".")
 	extension := split[len(split)-1]
 	imageNumbersCache[request.DeviceNumber] = imageNumbersCache[request.DeviceNumber] + 1
 	name := fmt.Sprintf("%s_%s_%d.%s", request.Address, time.Now().In(libtime.MoscowLocation()).Format("02.01.2006_15.04"), imageNumbersCache[request.DeviceNumber], extension)
 
-	imageOptions, err := s.analyzerService.GetImageOptions(ctx, name, payload)
+	payload, err := request.File.Open()
 	if err != nil {
-		return file.File{}, fmt.Errorf("failed check blur score: %w", err)
-	}
-	if !validate(imageOptions) {
-		return file.File{}, analyzer.ErrBlurredPhoto
+		return file.File{}, fmt.Errorf("failed to open payload: %w", err)
 	}
 
-	url, err := s.images.Add(ctx, name, payload, request.Payload.Size)
+	url, err := s.images.Add(ctx, name, payload, request.File.Size)
 	if err != nil {
 		return file.File{}, fmt.Errorf("failed to upload image: %w", err)
 	}
@@ -53,8 +53,4 @@ func (s *Service) Upload(ctx libctx.Context, _ liblog.Logger, request UploadRequ
 		Name: name,
 		URL:  url,
 	}, nil
-}
-
-func validate(imageOptions analyzer.ImageQualityResult) bool {
-	return !imageOptions.HasError || !imageOptions.IsBlurred
 }

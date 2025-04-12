@@ -1,6 +1,9 @@
 package http
 
-import "mime/multipart"
+import (
+	"mime/multipart"
+	"net/textproto"
+)
 
 type FormDataField struct {
 	Name  string
@@ -8,7 +11,6 @@ type FormDataField struct {
 }
 
 type FormDataFile struct {
-	FieldName string
-	FileName  string
-	Payload   multipart.File
+	Payload    multipart.File
+	MIMEHeader textproto.MIMEHeader
 }

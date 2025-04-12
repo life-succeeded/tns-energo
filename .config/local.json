@@ -1,15 +1,15 @@
 {
   "port": 8080,
   "databases": {
-    "mongo": "mongodb://mongoroot:sB7RZMlOWmCov7jSsvrZ@localhost:27017/?connect=direct",
+    "mongo": "mongodb://mongoroot:sB7RZMlOWmCov7jSsvrZ@88.218.170.121:27017/?connect=direct",
     "minio": {
-      "endpoint": "localhost:9000",
+      "endpoint": "88.218.170.121:9000",
       "images_bucket": "images",
       "documents_bucket": "documents",
       "user": "minioadmin",
       "password": "X8b3nTOBckRF",
       "use_ssl": false,
-      "host": "http://localhost/storage"
+      "host": "https://tns.quassbot.ru/storage"
     }
   },
   "templates": {

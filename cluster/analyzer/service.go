@@ -8,8 +8,6 @@ import (
 	libhttp "tns-energo/lib/http"
 )
 
-const fileField = "file"
-
 type Service struct {
 	client  libhttp.Client
 	baseUrl string
@@ -22,11 +20,15 @@ func NewService(client libhttp.Client, baseUrl string) *Service {
 	}
 }
 
-func (s *Service) GetImageOptions(ctx libctx.Context, fileName string, payload multipart.File) (ImageQualityResult, error) {
+func (s *Service) GetImageOptions(ctx libctx.Context, file *multipart.FileHeader) (ImageQualityResult, error) {
+	payload, err := file.Open()
+	if err != nil {
+		return ImageQualityResult{}, fmt.Errorf("failed to open payload: %w", err)
+	}
+
 	var files = []libhttp.FormDataFile{{
-		FieldName: fileField,
-		FileName:  fileName,
-		Payload:   payload,
+		Payload:    payload,
+		MIMEHeader: file.Header,
 	}}
 
 	var response ImageQualityResult

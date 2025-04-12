@@ -125,9 +125,9 @@ func (c LibClient) SendFormData(ctx libctx.Context, url string, fields []FormDat
 	}
 
 	for _, file := range files {
-		part, err := writer.CreateFormFile(file.FieldName, file.FileName)
+		part, err := writer.CreatePart(file.MIMEHeader)
 		if err != nil {
-			return http.StatusBadRequest, fmt.Errorf("can't create form file: %w", err)
+			return http.StatusBadRequest, fmt.Errorf("can't create part: %w", err)
 		}
 
 		_, err = io.Copy(part, file.Payload)
