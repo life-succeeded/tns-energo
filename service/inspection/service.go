@@ -2,18 +2,20 @@ package inspection
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
+	libtime "tns-energo/lib/time"
 	"tns-energo/service/brigade"
 	"tns-energo/service/device"
 	"tns-energo/service/file"
+	"tns-energo/service/registry"
 	"tns-energo/service/task"
 
-	"github.com/google/uuid"
 	"github.com/lukasjarosch/go-docx"
 )
 
@@ -38,7 +40,7 @@ func NewService(settings config.Settings, inspections Storage, documents Documen
 }
 
 func (s *Service) InspectUniversal(ctx libctx.Context, _ liblog.Logger, request InspectUniversalRequest) (file.File, error) {
-	now := time.Now()
+	now := time.Now().In(libtime.MoscowLocation())
 	inspection := Inspection{
 		TaskId:              request.TaskId,
 		BrigadeId:           request.BrigadeId,
@@ -71,7 +73,7 @@ func (s *Service) InspectUniversal(ctx libctx.Context, _ liblog.Logger, request 
 	}
 
 	inspection.ResolutionFile = file.File{
-		Name: fmt.Sprintf("%s.docx", uuid.New()),
+		Name: fmt.Sprintf("Акт_№%s_%s_%s.docx", inspection.ActNumber, inspection.Address, inspection.InspectionDate.Format("02.01.2006_15.04")),
 	}
 	url, err := s.documents.Add(ctx, inspection.ResolutionFile.Name, buf, buf.Len())
 	if err != nil {
@@ -89,7 +91,7 @@ func (s *Service) InspectUniversal(ctx libctx.Context, _ liblog.Logger, request 
 		return file.File{}, fmt.Errorf("could not update task status: %w", err)
 	}
 
-	/*item, err := s.registry.GetByAccountNumber(ctx, inspection.AccountNumber)
+	item, err := s.registry.GetByAccountNumber(ctx, inspection.AccountNumber)
 	if err != nil {
 		if !errors.Is(err, registry.ErrItemNotFound) {
 			return file.File{}, fmt.Errorf("could not get registry item: %w", err)
@@ -98,6 +100,7 @@ func (s *Service) InspectUniversal(ctx libctx.Context, _ liblog.Logger, request 
 		addErr := s.registry.AddOne(ctx, registry.Item{
 			AccountNumber: inspection.AccountNumber,
 			Address:       inspection.Address,
+			NewDevice:     inspection.Device,
 			CreatedAt:     now,
 			UpdatedAt:     now,
 		})
@@ -111,12 +114,14 @@ func (s *Service) InspectUniversal(ctx libctx.Context, _ liblog.Logger, request 
 	err = s.registry.UpdateOne(ctx, registry.Item{
 		AccountNumber: inspection.AccountNumber,
 		Address:       inspection.Address,
+		OldDevice:     item.OldDevice,
+		NewDevice:     inspection.Device,
 		CreatedAt:     item.CreatedAt,
-		UpdatedAt:     now,
+		UpdatedAt:     inspection.InspectionDate,
 	})
 	if err != nil {
 		return file.File{}, fmt.Errorf("could not update registry item: %w", err)
-	}*/
+	}
 
 	return inspection.ResolutionFile, nil
 }
