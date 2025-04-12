@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"tns-energo/cluster/analyzer"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
 	libtime "tns-energo/lib/time"
@@ -13,12 +14,14 @@ import (
 var imageNumbersCache = make(map[string]int, 32)
 
 type Service struct {
-	images Storage
+	images          Storage
+	analyzerService *analyzer.Service
 }
 
-func NewService(images Storage) *Service {
+func NewService(images Storage, analyzerService *analyzer.Service) *Service {
 	return &Service{
-		images: images,
+		images:          images,
+		analyzerService: analyzerService,
 	}
 }
 
@@ -26,6 +29,15 @@ func (s *Service) Upload(ctx libctx.Context, _ liblog.Logger, request UploadRequ
 	payload, err := request.Payload.Open()
 	if err != nil {
 		return file.File{}, fmt.Errorf("failed to open payload: %w", err)
+	}
+
+	imageOptions, err := s.analyzerService.GetImageOptions(ctx, request.Payload)
+	if err != nil {
+		return file.File{}, fmt.Errorf("falied check blur score: %w", err)
+	}
+
+	if !validate(imageOptions) {
+		return file.File{}, analyzer.BlurredPhotoError
 	}
 
 	split := strings.Split(request.Payload.Filename, ".")
@@ -42,4 +54,8 @@ func (s *Service) Upload(ctx libctx.Context, _ liblog.Logger, request UploadRequ
 		Name: name,
 		URL:  url,
 	}, nil
+}
+
+func validate(imageOptions analyzer.ImageQualityResult) bool {
+	return !imageOptions.HasError || !imageOptions.IsBlurred
 }

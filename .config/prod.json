@@ -39,5 +39,8 @@
   },
   "cron": {
     "daily_report_time": "18:00"
+  },
+  "cluster": {
+    "analyzerService": "https://tns.quassbot.ru/analyze"
   }
 }

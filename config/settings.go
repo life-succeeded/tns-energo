@@ -1,15 +1,16 @@
 package config
 
 type Settings struct {
-	Port        int         `json:"port"`
-	Databases   Databases   `json:"databases"`
-	Templates   Templates   `json:"templates"`
-	Registry    MongoConfig `json:"registry"`
-	Inspections MongoConfig `json:"inspections"`
-	Reports     MongoConfig `json:"reports"`
-	Tasks       MongoConfig `json:"tasks"`
-	Brigades    MongoConfig `json:"brigades"`
-	Cron        Cron        `json:"cron"`
+	Port            int             `json:"port"`
+	Databases       Databases       `json:"databases"`
+	Templates       Templates       `json:"templates"`
+	Registry        MongoConfig     `json:"registry"`
+	Inspections     MongoConfig     `json:"inspections"`
+	Reports         MongoConfig     `json:"reports"`
+	Tasks           MongoConfig     `json:"tasks"`
+	Brigades        MongoConfig     `json:"brigades"`
+	Cron            Cron            `json:"cron"`
+	ClusterServices ClusterServices `json:"cluster"`
 }
 
 type Databases struct {
@@ -40,4 +41,8 @@ type MongoConfig struct {
 
 type Cron struct {
 	DailyReportTime string `json:"daily_report_time"`
+}
+
+type ClusterServices struct {
+	AnalyzerService string `json:"analyzerService"`
 }
