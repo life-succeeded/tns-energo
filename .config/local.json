@@ -1,0 +1,46 @@
+{
+  "port": 8080,
+  "databases": {
+    "mongo": "",
+    "minio": {
+      "endpoint": "minio:9000",
+      "images_bucket": "images",
+      "documents_bucket": "documents",
+      "user": "",
+      "password": "",
+      "use_ssl": false,
+      "host": "http://localhost/storage"
+    }
+  },
+  "templates": {
+    "universal": "./service/inspection/templates/universal_act.docx",
+    "control": "./service/inspection/templates/control_act.docx",
+    "report": "./service/analytics/templates/report.xlsx"
+  },
+  "registry": {
+    "database": "tns-energo",
+    "collection": "registry"
+  },
+  "inspections": {
+    "database": "tns-energo",
+    "collection": "inspections"
+  },
+  "reports": {
+    "database": "tns-energo",
+    "collection": "reports"
+  },
+  "tasks": {
+    "database": "tns-energo",
+    "collection": "tasks"
+  },
+  "brigades": {
+    "database": "tns-energo",
+    "collection": "brigades"
+  },
+  "cron": {
+    "daily_report_time": "18:00"
+  },
+  "cluster": {
+    "analyzerService": "https://tns.quassbot.ru/analyze"
+  }
+}
