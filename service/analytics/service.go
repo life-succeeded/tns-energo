@@ -6,6 +6,7 @@ import (
 	"tns-energo/config"
 	libctx "tns-energo/lib/ctx"
 	liblog "tns-energo/lib/log"
+	libtime "tns-energo/lib/time"
 	"tns-energo/service/file"
 	"tns-energo/service/inspection"
 
@@ -96,8 +97,8 @@ func (s *Service) GenerateDailyReport(ctx libctx.Context, log liblog.Logger, dat
 			i + 1,
 			ins.Address,
 			fmt.Sprintf("%s №%s", ins.Device.Type, ins.Device.Number),
-			ins.InspectionDate.Format("02.01.2006"),
-			ins.InspectionDate.Format("15:04"),
+			ins.InspectionDate.In(libtime.MoscowLocation()).Format("02.01.2006"),
+			ins.InspectionDate.In(libtime.MoscowLocation()).Format("15:04"),
 			work,
 			result,
 			firstInspector,
