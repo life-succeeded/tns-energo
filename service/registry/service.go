@@ -66,7 +66,8 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, fileHeader *multi
 		}
 
 		items = append(items, Item{
-			Address: strings.Join(addressSlice, ", "),
+			AccountNumber: row[1],
+			Address:       strings.Join(addressSlice, ", "),
 			OldDevice: device.Device{
 				Type:   row[10],
 				Number: row[11],
