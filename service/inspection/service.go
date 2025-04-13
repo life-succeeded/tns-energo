@@ -252,6 +252,8 @@ func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*byt
 		secondInspector = fmt.Sprintf("%s%s.", secondInspector, string([]rune(brig.SecondInspector.Patronymic)[0]))
 	}
 
+	energyDate := inspection.EnergyActionDate.In(libtime.MoscowLocation())
+
 	replaceMap := docx.PlaceholderMap{
 		"act_number":               inspection.ActNumber,
 		"is_limitation":            isLimitation,
@@ -273,11 +275,11 @@ func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*byt
 		"is_energy_limited":        isEnergyLimited,
 		"is_energy_stopped":        isEnergyStopped,
 		"is_energy_resumed":        isEnergyResumed,
-		"energy_hour":              inspection.EnergyActionDate.Format("15"),
-		"energy_minute":            inspection.EnergyActionDate.Format("04"),
-		"energy_day":               inspection.EnergyActionDate.Format("02"),
-		"energy_month":             russianMonth(inspection.EnergyActionDate.Month()),
-		"energy_year":              inspection.EnergyActionDate.Year(),
+		"energy_hour":              energyDate.Format("15"),
+		"energy_minute":            energyDate.Format("04"),
+		"energy_day":               energyDate.Format("02"),
+		"energy_month":             russianMonth(energyDate.Month()),
+		"energy_year":              energyDate.Year(),
 		"is_by_consumer":           isByConsumer,
 		"is_by_inspector":          isByInspector,
 		"method":                   inspection.Method,
@@ -414,6 +416,8 @@ func (s *Service) generateControlAct(inspection Inspection, brig brigade.Brigade
 		secondInspector = fmt.Sprintf("%s%s.", secondInspector, string([]rune(brig.SecondInspector.Patronymic)[0]))
 	}
 
+	energyDate := inspection.EnergyActionDate.In(libtime.MoscowLocation())
+
 	replaceMap := docx.PlaceholderMap{
 		"act_number":                    inspection.ActNumber,
 		"is_verification":               isVerification,
@@ -435,11 +439,11 @@ func (s *Service) generateControlAct(inspection Inspection, brig brigade.Brigade
 		"other_reason":                  inspection.OtherReason,
 		"is_energy_limited":             isEnergyLimited,
 		"is_energy_stopped":             isEnergyStopped,
-		"energy_hour":                   inspection.EnergyActionDate.Format("15"),
-		"energy_minute":                 inspection.EnergyActionDate.Format("04"),
-		"energy_day":                    inspection.EnergyActionDate.Format("02"),
-		"energy_month":                  russianMonth(inspection.EnergyActionDate.Month()),
-		"energy_year":                   inspection.EnergyActionDate.Year(),
+		"energy_hour":                   energyDate.Format("15"),
+		"energy_minute":                 energyDate.Format("04"),
+		"energy_day":                    energyDate.Format("02"),
+		"energy_month":                  russianMonth(energyDate.Month()),
+		"energy_year":                   energyDate.Year(),
 		"is_by_consumer":                isByConsumer,
 		"is_by_inspector":               isByInspector,
 		"is_checked":                    isChecked,
