@@ -110,7 +110,6 @@ func (s *Service) GenerateDailyReport(ctx libctx.Context, log liblog.Logger, dat
 		if err != nil {
 			return report, fmt.Errorf("failed to set sheet row: %w", err)
 		}
-
 	}
 
 	buf, err := f.WriteToBuffer()

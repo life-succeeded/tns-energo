@@ -52,7 +52,6 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 	}
 
 	actNumber := 1
-	log.Debugf("len(inspections): %d", len(inspections))
 	if len(inspections) > 0 {
 		sort.Slice(inspections, func(i, j int) bool {
 			return inspections[i].ActNumber > inspections[j].ActNumber
