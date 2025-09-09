@@ -1,10 +1,24 @@
-FROM golang:1.24.1
-WORKDIR /app
+FROM golang:1.24 AS build
+
+WORKDIR /build
+COPY . .
+
+# Скачиваем зависимости (кешируется в слое Docker)
+RUN go mod download
+
+# Копируем файлы, которые нужны в рантайме
+RUN mkdir out && \
+    mv .config/ out/
+
+# Билдим гошечку в бинарник out/app
+RUN go build -o out/app
+
+FROM ubuntu:24.04
+
 EXPOSE 8080
 
-COPY . .
-RUN chmod +x ./start.sh
+WORKDIR /app
 
-RUN go install -mod vendor
+COPY --from=build /build/out ./
 
-ENTRYPOINT ["./start.sh"]
+ENTRYPOINT ["./app"]
