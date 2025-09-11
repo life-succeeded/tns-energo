@@ -1,9 +1,11 @@
 package cron
 
-import liblog "tns-energo/lib/log"
+import (
+	"github.com/sunshineOfficial/golib/golog"
+)
 
 type logger struct {
-	log liblog.Logger
+	log golog.Logger
 }
 
 func (l logger) Debug(msg string, args ...any) {

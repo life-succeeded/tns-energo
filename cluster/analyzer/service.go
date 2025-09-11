@@ -4,29 +4,30 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	libctx "tns-energo/lib/ctx"
-	libhttp "tns-energo/lib/http"
+
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/gohttp"
 )
 
 type Service struct {
-	client  libhttp.Client
+	client  gohttp.Client
 	baseUrl string
 }
 
-func NewService(client libhttp.Client, baseUrl string) *Service {
+func NewService(client gohttp.Client, baseUrl string) *Service {
 	return &Service{
 		client:  client,
 		baseUrl: baseUrl,
 	}
 }
 
-func (s *Service) GetImageOptions(ctx libctx.Context, file *multipart.FileHeader) (ImageQualityResult, error) {
+func (s *Service) GetImageOptions(ctx goctx.Context, file *multipart.FileHeader) (ImageQualityResult, error) {
 	payload, err := file.Open()
 	if err != nil {
 		return ImageQualityResult{}, fmt.Errorf("failed to open payload: %w", err)
 	}
 
-	var files = []libhttp.FormDataFile{{
+	var files = []gohttp.FormDataFile{{
 		Payload:    payload,
 		MIMEHeader: file.Header,
 	}}

@@ -1,13 +1,13 @@
 package task
 
 import (
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
 )
 
 type Storage interface {
-	AddOne(ctx libctx.Context, task Task) (string, error)
-	GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]Task, error)
-	UpdateStatus(ctx libctx.Context, id string, status Status) error
-	GetById(ctx libctx.Context, id string) (Task, error)
+	AddOne(ctx goctx.Context, task Task) (string, error)
+	GetByBrigadeId(ctx goctx.Context, log golog.Logger, brigadeId string) ([]Task, error)
+	UpdateStatus(ctx goctx.Context, id string, status Status) error
+	GetById(ctx goctx.Context, id string) (Task, error)
 }

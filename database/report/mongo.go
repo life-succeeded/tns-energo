@@ -2,10 +2,10 @@ package report
 
 import (
 	"errors"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
 	domain "tns-energo/service/analytics"
 
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,7 +25,7 @@ func NewStorage(cli *mongo.Client, database, collection string) *Mongo {
 	}
 }
 
-func (s *Mongo) AddOne(ctx libctx.Context, r domain.Report) (string, error) {
+func (s *Mongo) AddOne(ctx goctx.Context, r domain.Report) (string, error) {
 	result, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
@@ -42,7 +42,7 @@ func (s *Mongo) AddOne(ctx libctx.Context, r domain.Report) (string, error) {
 	return id.Hex(), nil
 }
 
-func (s *Mongo) GetAll(ctx libctx.Context, log liblog.Logger) ([]domain.Report, error) {
+func (s *Mongo) GetAll(ctx goctx.Context, log golog.Logger) ([]domain.Report, error) {
 	cursor, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).

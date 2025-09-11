@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 	"tns-energo/config"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
-	libtime "tns-energo/lib/time"
 	"tns-energo/service/file"
 	"tns-energo/service/inspection"
 
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
+	"github.com/sunshineOfficial/golib/gotime"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -29,7 +29,7 @@ func NewService(settings config.Settings, reports ReportStorage, inspections Ins
 	}
 }
 
-func (s *Service) GenerateDailyReport(ctx libctx.Context, log liblog.Logger, date time.Time) (Report, error) {
+func (s *Service) GenerateDailyReport(ctx goctx.Context, log golog.Logger, date time.Time) (Report, error) {
 	inspections, err := s.inspections.GetByInspectionDate(ctx, log, date)
 	if err != nil {
 		return Report{}, fmt.Errorf("could not get inspections: %w", err)
@@ -97,8 +97,8 @@ func (s *Service) GenerateDailyReport(ctx libctx.Context, log liblog.Logger, dat
 			i + 1,
 			ins.Address,
 			fmt.Sprintf("%s №%s", ins.Device.Type, ins.Device.Number),
-			ins.InspectionDate.In(libtime.MoscowLocation()).Format("02.01.2006"),
-			ins.InspectionDate.In(libtime.MoscowLocation()).Format("15:04"),
+			ins.InspectionDate.In(gotime.Moscow).Format("02.01.2006"),
+			ins.InspectionDate.In(gotime.Moscow).Format("15:04"),
 			work,
 			result,
 			firstInspector,
@@ -134,7 +134,7 @@ func (s *Service) GenerateDailyReport(ctx libctx.Context, log liblog.Logger, dat
 	return report, nil
 }
 
-func (s *Service) GetAllReports(ctx libctx.Context, log liblog.Logger) ([]Report, error) {
+func (s *Service) GetAllReports(ctx goctx.Context, log golog.Logger) ([]Report, error) {
 	reports, err := s.reports.GetAll(ctx, log)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all reports: %w", err)

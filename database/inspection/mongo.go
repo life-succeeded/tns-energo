@@ -2,11 +2,11 @@ package inspection
 
 import (
 	"time"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
-	libtime "tns-energo/lib/time"
 	"tns-energo/service/inspection"
 
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
+	"github.com/sunshineOfficial/golib/gotime"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -24,7 +24,7 @@ func NewStorage(cli *mongo.Client, database, collection string) *Mongo {
 	}
 }
 
-func (s *Mongo) AddOne(ctx libctx.Context, inspection inspection.Inspection) error {
+func (s *Mongo) AddOne(ctx goctx.Context, inspection inspection.Inspection) error {
 	_, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
@@ -33,7 +33,7 @@ func (s *Mongo) AddOne(ctx libctx.Context, inspection inspection.Inspection) err
 	return err
 }
 
-func (s *Mongo) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]inspection.Inspection, error) {
+func (s *Mongo) GetByBrigadeId(ctx goctx.Context, log golog.Logger, brigadeId string) ([]inspection.Inspection, error) {
 	cursor, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
@@ -56,8 +56,8 @@ func (s *Mongo) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId 
 	return MapSliceToDomain(inspections), nil
 }
 
-func (s *Mongo) GetByInspectionDate(ctx libctx.Context, log liblog.Logger, inspectionDate time.Time) ([]inspection.Inspection, error) {
-	gteDate := time.Date(inspectionDate.Year(), inspectionDate.Month(), inspectionDate.Day(), 0, 0, 0, 0, libtime.MoscowLocation())
+func (s *Mongo) GetByInspectionDate(ctx goctx.Context, log golog.Logger, inspectionDate time.Time) ([]inspection.Inspection, error) {
+	gteDate := time.Date(inspectionDate.Year(), inspectionDate.Month(), inspectionDate.Day(), 0, 0, 0, 0, gotime.Moscow)
 	ltDate := gteDate.AddDate(0, 0, 1)
 	cursor, err := s.cli.
 		Database(s.database).

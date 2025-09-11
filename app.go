@@ -13,11 +13,6 @@ import (
 	dbregistry "tns-energo/database/registry"
 	dbreport "tns-energo/database/report"
 	dbtask "tns-energo/database/task"
-	"tns-energo/lib/ctx"
-	"tns-energo/lib/db"
-	libhttp "tns-energo/lib/http"
-	libserver "tns-energo/lib/http/server"
-	liblog "tns-energo/lib/log"
 	"tns-energo/service/analytics"
 	"tns-energo/service/brigade"
 	"tns-energo/service/cron"
@@ -28,6 +23,11 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/sunshineOfficial/golib/db"
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/gohttp"
+	"github.com/sunshineOfficial/golib/gohttp/goserver"
+	"github.com/sunshineOfficial/golib/golog"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -36,7 +36,7 @@ const _databaseTimeout = 15 * time.Second
 type App struct {
 	/* main */
 	mainCtx  context.Context
-	log      liblog.Logger
+	log      golog.Logger
 	settings config.Settings
 
 	/* storage */
@@ -44,7 +44,7 @@ type App struct {
 	minio *minio.Client
 
 	/* http */
-	server libserver.Server
+	server goserver.Server
 
 	/* services */
 	inspectionService *inspection.Service
@@ -59,7 +59,7 @@ type App struct {
 	analyzerService *analyzer.Service
 }
 
-func NewApp(mainCtx ctx.Context, log liblog.Logger, settings config.Settings) *App {
+func NewApp(mainCtx goctx.Context, log golog.Logger, settings config.Settings) *App {
 	return &App{
 		mainCtx:  mainCtx,
 		log:      log,
@@ -86,7 +86,7 @@ func (a *App) InitDatabases() (err error) {
 }
 
 func (a *App) InitServices() (err error) {
-	httpClient := libhttp.NewClient()
+	httpClient := gohttp.NewClient()
 
 	inspectionStorage := dbinspection.NewStorage(a.mongo, a.settings.Inspections.Database, a.settings.Inspections.Collection)
 	registryStorage := dbregistry.NewStorage(a.mongo, a.settings.Registry.Database, a.settings.Registry.Collection)

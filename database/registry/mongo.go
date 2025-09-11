@@ -2,10 +2,10 @@ package registry
 
 import (
 	"errors"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
 	"tns-energo/service/registry"
 
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -23,7 +23,7 @@ func NewStorage(cli *mongo.Client, database, collection string) *Mongo {
 	}
 }
 
-func (s *Mongo) AddOne(ctx libctx.Context, item registry.Item) error {
+func (s *Mongo) AddOne(ctx goctx.Context, item registry.Item) error {
 	_, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
@@ -32,7 +32,7 @@ func (s *Mongo) AddOne(ctx libctx.Context, item registry.Item) error {
 	return err
 }
 
-func (s *Mongo) AddMany(ctx libctx.Context, items []registry.Item) error {
+func (s *Mongo) AddMany(ctx goctx.Context, items []registry.Item) error {
 	docs := make([]interface{}, 0, len(items))
 	for _, item := range items {
 		docs = append(docs, MapToDb(item))
@@ -46,7 +46,7 @@ func (s *Mongo) AddMany(ctx libctx.Context, items []registry.Item) error {
 	return err
 }
 
-func (s *Mongo) GetByAccountNumber(ctx libctx.Context, accountNumber string) (registry.Item, error) {
+func (s *Mongo) GetByAccountNumber(ctx goctx.Context, accountNumber string) (registry.Item, error) {
 	var item Item
 	err := s.cli.
 		Database(s.database).
@@ -64,7 +64,7 @@ func (s *Mongo) GetByAccountNumber(ctx libctx.Context, accountNumber string) (re
 	return MapToDomain(item), nil
 }
 
-func (s *Mongo) GetByAccountNumberRegular(ctx libctx.Context, log liblog.Logger, accountNumber string) ([]registry.Item, error) {
+func (s *Mongo) GetByAccountNumberRegular(ctx goctx.Context, log golog.Logger, accountNumber string) ([]registry.Item, error) {
 	cursor, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
@@ -87,7 +87,7 @@ func (s *Mongo) GetByAccountNumberRegular(ctx libctx.Context, log liblog.Logger,
 	return MapSliceToDomain(items), nil
 }
 
-func (s *Mongo) UpdateOne(ctx libctx.Context, item registry.Item) error {
+func (s *Mongo) UpdateOne(ctx goctx.Context, item registry.Item) error {
 	_, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).

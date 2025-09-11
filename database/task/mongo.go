@@ -3,10 +3,10 @@ package task
 import (
 	"errors"
 	"fmt"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
 	"tns-energo/service/task"
 
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,7 +25,7 @@ func NewStorage(cli *mongo.Client, database, collection string) *Mongo {
 	}
 }
 
-func (s *Mongo) AddOne(ctx libctx.Context, t task.Task) (string, error) {
+func (s *Mongo) AddOne(ctx goctx.Context, t task.Task) (string, error) {
 	result, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
@@ -42,7 +42,7 @@ func (s *Mongo) AddOne(ctx libctx.Context, t task.Task) (string, error) {
 	return id.Hex(), nil
 }
 
-func (s *Mongo) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]task.Task, error) {
+func (s *Mongo) GetByBrigadeId(ctx goctx.Context, log golog.Logger, brigadeId string) ([]task.Task, error) {
 	cursor, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
@@ -65,7 +65,7 @@ func (s *Mongo) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId 
 	return MapSliceToDomain(tasks), nil
 }
 
-func (s *Mongo) UpdateStatus(ctx libctx.Context, id string, status task.Status) error {
+func (s *Mongo) UpdateStatus(ctx goctx.Context, id string, status task.Status) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return fmt.Errorf("failed to convert id to ObjectID: %v", err)
@@ -79,7 +79,7 @@ func (s *Mongo) UpdateStatus(ctx libctx.Context, id string, status task.Status) 
 	return err
 }
 
-func (s *Mongo) GetById(ctx libctx.Context, id string) (task.Task, error) {
+func (s *Mongo) GetById(ctx goctx.Context, id string) (task.Task, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return task.Task{}, fmt.Errorf("failed to convert id to ObjectID: %v", err)

@@ -3,12 +3,13 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"tns-energo/lib/http/router"
 	"tns-energo/service/task"
+
+	"github.com/sunshineOfficial/golib/gohttp/gorouter"
 )
 
-func AddTaskHandler(taskService *task.Service) router.Handler {
-	return func(c router.Context) error {
+func AddTaskHandler(taskService *task.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var request task.AddOneRequest
 		if err := c.ReadJson(&request); err != nil {
 			return fmt.Errorf("failed to read json: %w", err)
@@ -27,8 +28,8 @@ type getTasksByBrigadeIdVars struct {
 	BrigadeId string `path:"brigade_id"`
 }
 
-func GetTasksByBrigadeId(taskService *task.Service) router.Handler {
-	return func(c router.Context) error {
+func GetTasksByBrigadeId(taskService *task.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var vars getTasksByBrigadeIdVars
 		if err := c.Vars(&vars); err != nil {
 			return fmt.Errorf("failed to read vars: %w", err)
@@ -47,8 +48,8 @@ type taskVars struct {
 	TaskId string `path:"task_id"`
 }
 
-func UpdateTaskStatusHandler(taskService *task.Service) router.Handler {
-	return func(c router.Context) error {
+func UpdateTaskStatusHandler(taskService *task.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var vars taskVars
 		if err := c.Vars(&vars); err != nil {
 			return fmt.Errorf("failed to read vars: %w", err)
@@ -70,8 +71,8 @@ func UpdateTaskStatusHandler(taskService *task.Service) router.Handler {
 	}
 }
 
-func GetTaskById(taskService *task.Service) router.Handler {
-	return func(c router.Context) error {
+func GetTaskById(taskService *task.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var vars taskVars
 		if err := c.Vars(&vars); err != nil {
 			return fmt.Errorf("failed to read vars: %w", err)

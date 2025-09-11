@@ -3,8 +3,9 @@ package brigade
 import (
 	"fmt"
 	"time"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
+
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
 )
 
 type Service struct {
@@ -17,7 +18,7 @@ func NewService(brigades Storage) *Service {
 	}
 }
 
-func (s *Service) Create(ctx libctx.Context, _ liblog.Logger, request CreateRequest) (Brigade, error) {
+func (s *Service) Create(ctx goctx.Context, _ golog.Logger, request CreateRequest) (Brigade, error) {
 	now := time.Now()
 	brigade := Brigade{
 		FirstInspector:  request.FirstInspector,
@@ -36,7 +37,7 @@ func (s *Service) Create(ctx libctx.Context, _ liblog.Logger, request CreateRequ
 	return brigade, nil
 }
 
-func (s *Service) GetById(ctx libctx.Context, _ liblog.Logger, id string) (Brigade, error) {
+func (s *Service) GetById(ctx goctx.Context, _ golog.Logger, id string) (Brigade, error) {
 	brigade, err := s.brigades.GetById(ctx, id)
 	if err != nil {
 		return Brigade{}, fmt.Errorf("could not find brigade: %w", err)
@@ -45,7 +46,7 @@ func (s *Service) GetById(ctx libctx.Context, _ liblog.Logger, id string) (Briga
 	return brigade, nil
 }
 
-func (s *Service) GetAll(ctx libctx.Context, log liblog.Logger) ([]Brigade, error) {
+func (s *Service) GetAll(ctx goctx.Context, log golog.Logger) ([]Brigade, error) {
 	brigades, err := s.brigades.GetAll(ctx, log)
 	if err != nil {
 		return nil, fmt.Errorf("could not find brigades: %w", err)
@@ -54,7 +55,7 @@ func (s *Service) GetAll(ctx libctx.Context, log liblog.Logger) ([]Brigade, erro
 	return brigades, nil
 }
 
-func (s *Service) Update(ctx libctx.Context, _ liblog.Logger, id string, request UpdateRequest) error {
+func (s *Service) Update(ctx goctx.Context, _ golog.Logger, id string, request UpdateRequest) error {
 	b, err := s.brigades.GetById(ctx, id)
 	if err != nil {
 		return fmt.Errorf("could not find brigade: %w", err)

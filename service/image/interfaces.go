@@ -2,9 +2,10 @@ package image
 
 import (
 	"io"
-	libctx "tns-energo/lib/ctx"
+
+	"github.com/sunshineOfficial/golib/goctx"
 )
 
 type Storage interface {
-	Add(ctx libctx.Context, fileName string, payload io.Reader, payloadLength int64) (string, error)
+	Add(ctx goctx.Context, fileName string, payload io.Reader, payloadLength int64) (string, error)
 }

@@ -8,9 +8,6 @@ import (
 	"strings"
 	"time"
 	"tns-energo/config"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
-	libtime "tns-energo/lib/time"
 	"tns-energo/service/brigade"
 	"tns-energo/service/device"
 	"tns-energo/service/file"
@@ -18,6 +15,9 @@ import (
 	"tns-energo/service/task"
 
 	"github.com/lukasjarosch/go-docx"
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
+	"github.com/sunshineOfficial/golib/gotime"
 )
 
 type Service struct {
@@ -40,7 +40,7 @@ func NewService(settings config.Settings, inspections Storage, documents Documen
 	}
 }
 
-func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request InspectRequest) (file.File, error) {
+func (s *Service) Inspect(ctx goctx.Context, log golog.Logger, request InspectRequest) (file.File, error) {
 	brig, err := s.brigades.GetById(ctx, request.BrigadeId)
 	if err != nil {
 		return file.File{}, fmt.Errorf("could not get brigade: %w", err)
@@ -59,7 +59,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 		actNumber = inspections[0].ActNumber + 1
 	}
 
-	now := time.Now().In(libtime.MoscowLocation())
+	now := time.Now().In(gotime.Moscow)
 	inspection := Inspection{
 		TaskId:                  request.TaskId,
 		Brigade:                 brig,
@@ -154,7 +154,7 @@ func (s *Service) Inspect(ctx libctx.Context, log liblog.Logger, request Inspect
 	return inspection.ResolutionFile, nil
 }
 
-func (s *Service) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]Inspection, error) {
+func (s *Service) GetByBrigadeId(ctx goctx.Context, log golog.Logger, brigadeId string) ([]Inspection, error) {
 	inspections, err := s.inspections.GetByBrigadeId(ctx, log, brigadeId)
 	if err != nil {
 		return nil, fmt.Errorf("could not get inspections: %w", err)
@@ -252,7 +252,7 @@ func (s *Service) generateAct(inspection Inspection, brig brigade.Brigade) (*byt
 		secondInspector = fmt.Sprintf("%s%s.", secondInspector, string([]rune(brig.SecondInspector.Patronymic)[0]))
 	}
 
-	energyDate := inspection.EnergyActionDate.In(libtime.MoscowLocation())
+	energyDate := inspection.EnergyActionDate.In(gotime.Moscow)
 
 	replaceMap := docx.PlaceholderMap{
 		"act_number":               inspection.ActNumber,
@@ -416,7 +416,7 @@ func (s *Service) generateControlAct(inspection Inspection, brig brigade.Brigade
 		secondInspector = fmt.Sprintf("%s%s.", secondInspector, string([]rune(brig.SecondInspector.Patronymic)[0]))
 	}
 
-	energyDate := inspection.EnergyActionDate.In(libtime.MoscowLocation())
+	energyDate := inspection.EnergyActionDate.In(gotime.Moscow)
 
 	replaceMap := docx.PlaceholderMap{
 		"act_number":                    inspection.ActNumber,

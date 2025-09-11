@@ -3,12 +3,13 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"tns-energo/lib/http/router"
 	"tns-energo/service/inspection"
+
+	"github.com/sunshineOfficial/golib/gohttp/gorouter"
 )
 
-func InspectHandler(inspectionsService *inspection.Service) router.Handler {
-	return func(c router.Context) error {
+func InspectHandler(inspectionsService *inspection.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var request inspection.InspectRequest
 		if err := c.ReadJson(&request); err != nil {
 			return fmt.Errorf("failed to read json: %w", err)
@@ -27,8 +28,8 @@ type getInspectionsByBrigadeIdVars struct {
 	BrigadeId string `path:"brigade_id"`
 }
 
-func GetInspectionsByBrigadeId(inspectionService *inspection.Service) router.Handler {
-	return func(c router.Context) error {
+func GetInspectionsByBrigadeId(inspectionService *inspection.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var vars getInspectionsByBrigadeIdVars
 		if err := c.Vars(&vars); err != nil {
 			return fmt.Errorf("failed to read vars: %w", err)

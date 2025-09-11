@@ -3,12 +3,13 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"tns-energo/lib/http/router"
 	"tns-energo/service/registry"
+
+	"github.com/sunshineOfficial/golib/gohttp/gorouter"
 )
 
-func ParseRegistryHandler(registryService *registry.Service) router.Handler {
-	return func(c router.Context) error {
+func ParseRegistryHandler(registryService *registry.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		form, err := c.FormData()
 		if err != nil {
 			return fmt.Errorf("could not parse form data: %w", err)
@@ -32,8 +33,8 @@ type getItemByAccountNumberVars struct {
 	AccountNumber string `path:"account_number"`
 }
 
-func GetItemByAccountNumberHandler(registryService *registry.Service) router.Handler {
-	return func(c router.Context) error {
+func GetItemByAccountNumberHandler(registryService *registry.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var vars getItemByAccountNumberVars
 		if err := c.Vars(&vars); err != nil {
 			return fmt.Errorf("failed to read vars: %w", err)
@@ -48,8 +49,8 @@ func GetItemByAccountNumberHandler(registryService *registry.Service) router.Han
 	}
 }
 
-func GetItemsByAccountNumberRegularHandler(registryService *registry.Service) router.Handler {
-	return func(c router.Context) error {
+func GetItemsByAccountNumberRegularHandler(registryService *registry.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var vars getItemByAccountNumberVars
 		if err := c.Vars(&vars); err != nil {
 			return fmt.Errorf("failed to read vars: %w", err)

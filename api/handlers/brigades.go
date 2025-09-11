@@ -3,12 +3,13 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"tns-energo/lib/http/router"
 	"tns-energo/service/brigade"
+
+	"github.com/sunshineOfficial/golib/gohttp/gorouter"
 )
 
-func CreateBrigadeHandler(brigadeService *brigade.Service) router.Handler {
-	return func(c router.Context) error {
+func CreateBrigadeHandler(brigadeService *brigade.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var request brigade.CreateRequest
 		if err := c.ReadJson(&request); err != nil {
 			return fmt.Errorf("failed to read json: %w", err)
@@ -27,8 +28,8 @@ type brigadeVars struct {
 	BrigadeId string `path:"brigade_id"`
 }
 
-func GetBrigadeByIdHandler(brigadeService *brigade.Service) router.Handler {
-	return func(c router.Context) error {
+func GetBrigadeByIdHandler(brigadeService *brigade.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var vars brigadeVars
 		if err := c.Vars(&vars); err != nil {
 			return fmt.Errorf("failed to get vars: %w", err)
@@ -43,8 +44,8 @@ func GetBrigadeByIdHandler(brigadeService *brigade.Service) router.Handler {
 	}
 }
 
-func GetAllBrigadesHandler(brigadeService *brigade.Service) router.Handler {
-	return func(c router.Context) error {
+func GetAllBrigadesHandler(brigadeService *brigade.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		response, err := brigadeService.GetAll(c.Ctx(), c.Log())
 		if err != nil {
 			return fmt.Errorf("failed to get all brigades: %w", err)
@@ -54,8 +55,8 @@ func GetAllBrigadesHandler(brigadeService *brigade.Service) router.Handler {
 	}
 }
 
-func UpdateBrigadeHandler(brigadeService *brigade.Service) router.Handler {
-	return func(c router.Context) error {
+func UpdateBrigadeHandler(brigadeService *brigade.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var vars brigadeVars
 		if err := c.Vars(&vars); err != nil {
 			return fmt.Errorf("failed to get vars: %w", err)

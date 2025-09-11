@@ -5,10 +5,10 @@ import (
 	"mime/multipart"
 	"strings"
 	"time"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
 	"tns-energo/service/device"
 
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -22,7 +22,7 @@ func NewService(registry Storage) *Service {
 	}
 }
 
-func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, fileHeader *multipart.FileHeader) error {
+func (s *Service) Parse(ctx goctx.Context, log golog.Logger, fileHeader *multipart.FileHeader) error {
 	payload, err := fileHeader.Open()
 	if err != nil {
 		return fmt.Errorf("failed to open payload: %w", err)
@@ -89,7 +89,7 @@ func (s *Service) Parse(ctx libctx.Context, log liblog.Logger, fileHeader *multi
 	return nil
 }
 
-func (s *Service) GetItemByAccountNumber(ctx libctx.Context, _ liblog.Logger, accountNumber string) (Item, error) {
+func (s *Service) GetItemByAccountNumber(ctx goctx.Context, _ golog.Logger, accountNumber string) (Item, error) {
 	item, err := s.registry.GetByAccountNumber(ctx, accountNumber)
 	if err != nil {
 		return Item{}, fmt.Errorf("could not get item by account number: %w", err)
@@ -98,7 +98,7 @@ func (s *Service) GetItemByAccountNumber(ctx libctx.Context, _ liblog.Logger, ac
 	return item, nil
 }
 
-func (s *Service) GetItemsByAccountNumberRegular(ctx libctx.Context, log liblog.Logger, accountNumber string) ([]Item, error) {
+func (s *Service) GetItemsByAccountNumberRegular(ctx goctx.Context, log golog.Logger, accountNumber string) ([]Item, error) {
 	items, err := s.registry.GetByAccountNumberRegular(ctx, log, accountNumber)
 	if err != nil {
 		return nil, fmt.Errorf("could not get items by account number: %w", err)

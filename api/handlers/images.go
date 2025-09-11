@@ -3,12 +3,13 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"tns-energo/lib/http/router"
 	"tns-energo/service/image"
+
+	"github.com/sunshineOfficial/golib/gohttp/gorouter"
 )
 
-func UploadImageHandler(imageService *image.Service) router.Handler {
-	return func(c router.Context) error {
+func UploadImageHandler(imageService *image.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		form, err := c.FormData()
 		if err != nil {
 			return fmt.Errorf("could not parse form data: %w", err)

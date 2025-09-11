@@ -3,10 +3,10 @@ package brigade
 import (
 	"errors"
 	"fmt"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
 	domain "tns-energo/service/brigade"
 
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,7 +25,7 @@ func NewStorage(cli *mongo.Client, database, collection string) *Mongo {
 	}
 }
 
-func (s *Mongo) AddOne(ctx libctx.Context, b domain.Brigade) (string, error) {
+func (s *Mongo) AddOne(ctx goctx.Context, b domain.Brigade) (string, error) {
 	result, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
@@ -42,7 +42,7 @@ func (s *Mongo) AddOne(ctx libctx.Context, b domain.Brigade) (string, error) {
 	return id.Hex(), nil
 }
 
-func (s *Mongo) GetById(ctx libctx.Context, id string) (domain.Brigade, error) {
+func (s *Mongo) GetById(ctx goctx.Context, id string) (domain.Brigade, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return domain.Brigade{}, fmt.Errorf("failed to convert id to ObjectID: %v", err)
@@ -61,7 +61,7 @@ func (s *Mongo) GetById(ctx libctx.Context, id string) (domain.Brigade, error) {
 	return MapToDomain(brigade), nil
 }
 
-func (s *Mongo) GetAll(ctx libctx.Context, log liblog.Logger) ([]domain.Brigade, error) {
+func (s *Mongo) GetAll(ctx goctx.Context, log golog.Logger) ([]domain.Brigade, error) {
 	cursor, err := s.cli.
 		Database(s.database).
 		Collection(s.collection).
@@ -84,7 +84,7 @@ func (s *Mongo) GetAll(ctx libctx.Context, log liblog.Logger) ([]domain.Brigade,
 	return MapSliceToDomain(brigades), nil
 }
 
-func (s *Mongo) Update(ctx libctx.Context, id string, b domain.Brigade) error {
+func (s *Mongo) Update(ctx goctx.Context, id string, b domain.Brigade) error {
 	b.Id = ""
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {

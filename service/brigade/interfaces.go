@@ -1,13 +1,13 @@
 package brigade
 
 import (
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
 )
 
 type Storage interface {
-	AddOne(ctx libctx.Context, b Brigade) (string, error)
-	GetById(ctx libctx.Context, id string) (Brigade, error)
-	GetAll(ctx libctx.Context, log liblog.Logger) ([]Brigade, error)
-	Update(ctx libctx.Context, id string, b Brigade) error
+	AddOne(ctx goctx.Context, b Brigade) (string, error)
+	GetById(ctx goctx.Context, id string) (Brigade, error)
+	GetAll(ctx goctx.Context, log golog.Logger) ([]Brigade, error)
+	Update(ctx goctx.Context, id string, b Brigade) error
 }

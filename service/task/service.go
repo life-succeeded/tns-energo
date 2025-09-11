@@ -3,8 +3,9 @@ package task
 import (
 	"fmt"
 	"time"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
+
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
 )
 
 type Service struct {
@@ -17,7 +18,7 @@ func NewService(tasks Storage) *Service {
 	}
 }
 
-func (s *Service) AddOne(ctx libctx.Context, _ liblog.Logger, request AddOneRequest) (Task, error) {
+func (s *Service) AddOne(ctx goctx.Context, _ golog.Logger, request AddOneRequest) (Task, error) {
 	now := time.Now()
 	task := Task{
 		BrigadeId:     request.BrigadeId,
@@ -41,7 +42,7 @@ func (s *Service) AddOne(ctx libctx.Context, _ liblog.Logger, request AddOneRequ
 	return task, nil
 }
 
-func (s *Service) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeId string) ([]Task, error) {
+func (s *Service) GetByBrigadeId(ctx goctx.Context, log golog.Logger, brigadeId string) ([]Task, error) {
 	tasks, err := s.tasks.GetByBrigadeId(ctx, log, brigadeId)
 	if err != nil {
 		return nil, fmt.Errorf("could not get tasks by brigade id: %w", err)
@@ -50,7 +51,7 @@ func (s *Service) GetByBrigadeId(ctx libctx.Context, log liblog.Logger, brigadeI
 	return tasks, nil
 }
 
-func (s *Service) GetById(ctx libctx.Context, _ liblog.Logger, id string) (Task, error) {
+func (s *Service) GetById(ctx goctx.Context, _ golog.Logger, id string) (Task, error) {
 	task, err := s.tasks.GetById(ctx, id)
 	if err != nil {
 		return Task{}, fmt.Errorf("could not get task by id: %w", err)
@@ -59,7 +60,7 @@ func (s *Service) GetById(ctx libctx.Context, _ liblog.Logger, id string) (Task,
 	return task, nil
 }
 
-func (s *Service) UpdateStatus(ctx libctx.Context, _ liblog.Logger, id string, request UpdateStatusRequest) error {
+func (s *Service) UpdateStatus(ctx goctx.Context, _ golog.Logger, id string, request UpdateStatusRequest) error {
 	err := s.tasks.UpdateStatus(ctx, id, request.NewStatus)
 	if err != nil {
 		return fmt.Errorf("could not update task status: %w", err)

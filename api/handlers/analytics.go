@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"tns-energo/lib/http/router"
 	"tns-energo/service/analytics"
+
+	"github.com/sunshineOfficial/golib/gohttp/gorouter"
 )
 
 type generateDailyReportVars struct {
 	Date string `path:"date"`
 }
 
-func GenerateDailyReportHandler(analyticsService *analytics.Service) router.Handler {
-	return func(c router.Context) error {
+func GenerateDailyReportHandler(analyticsService *analytics.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		var vars generateDailyReportVars
 		if err := c.Vars(&vars); err != nil {
 			return fmt.Errorf("failed to read vars: %w", err)
@@ -33,8 +34,8 @@ func GenerateDailyReportHandler(analyticsService *analytics.Service) router.Hand
 	}
 }
 
-func GetAllReportsHandler(analyticsService *analytics.Service) router.Handler {
-	return func(c router.Context) error {
+func GetAllReportsHandler(analyticsService *analytics.Service) gorouter.Handler {
+	return func(c gorouter.Context) error {
 		response, err := analyticsService.GetAllReports(c.Ctx(), c.Log())
 		if err != nil {
 			return fmt.Errorf("failed to get all reports: %w", err)

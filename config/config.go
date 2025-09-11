@@ -2,7 +2,8 @@ package config
 
 import (
 	"os"
-	"tns-energo/lib/config"
+
+	"github.com/sunshineOfficial/golib/config"
 )
 
 func Parse() (Settings, error) {

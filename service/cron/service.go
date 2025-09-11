@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 	"tns-energo/config"
-	libctx "tns-energo/lib/ctx"
-	liblog "tns-energo/lib/log"
 	"tns-energo/service/analytics"
 
 	"github.com/go-co-op/gocron/v2"
+	"github.com/sunshineOfficial/golib/goctx"
+	"github.com/sunshineOfficial/golib/golog"
 )
 
 type Service struct {
@@ -25,7 +25,7 @@ func NewService(settings config.Settings, analyticsService *analytics.Service) *
 	}
 }
 
-func (s *Service) LaunchJobs(ctx context.Context, log liblog.Logger) error {
+func (s *Service) LaunchJobs(ctx context.Context, log golog.Logger) error {
 	log = log.WithTags("cron")
 
 	dailyReportTime, err := time.Parse("15:04", s.settings.Cron.DailyReportTime)
@@ -59,8 +59,8 @@ func (s *Service) Shutdown() error {
 	return nil
 }
 
-func (s *Service) dailyReportTask(ctx context.Context, log liblog.Logger) {
-	taskCtx, cancelTaskCtx := libctx.Wrap(ctx).WithCancel()
+func (s *Service) dailyReportTask(ctx context.Context, log golog.Logger) {
+	taskCtx, cancelTaskCtx := goctx.Wrap(ctx).WithCancel()
 	defer cancelTaskCtx()
 
 	log = log.WithTags("daily report task")

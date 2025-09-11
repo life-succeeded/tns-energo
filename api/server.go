@@ -5,33 +5,38 @@ import (
 	"fmt"
 	"tns-energo/api/handlers"
 	"tns-energo/config"
-	librouter "tns-energo/lib/http/router"
-	"tns-energo/lib/http/router/middleware"
-	"tns-energo/lib/http/router/plugin"
-	libserver "tns-energo/lib/http/server"
-	liblog "tns-energo/lib/log"
 	"tns-energo/service/analytics"
 	"tns-energo/service/brigade"
 	"tns-energo/service/image"
 	"tns-energo/service/inspection"
 	"tns-energo/service/registry"
 	"tns-energo/service/task"
+
+	"github.com/sunshineOfficial/golib/gohttp/gorouter"
+	"github.com/sunshineOfficial/golib/gohttp/gorouter/middleware"
+	"github.com/sunshineOfficial/golib/gohttp/gorouter/plugin"
+	"github.com/sunshineOfficial/golib/gohttp/goserver"
+	"github.com/sunshineOfficial/golib/golog"
 )
 
 type ServerBuilder struct {
-	server libserver.Server
-	router *librouter.Router
+	server goserver.Server
+	router *gorouter.Router
 }
 
-func NewServerBuilder(ctx context.Context, log liblog.Logger, settings config.Settings) *ServerBuilder {
+func NewServerBuilder(ctx context.Context, log golog.Logger, settings config.Settings) *ServerBuilder {
 	return &ServerBuilder{
-		server: libserver.NewHTTPServer(ctx, log, fmt.Sprintf(":%d", settings.Port)),
-		router: librouter.NewRouter(log).Use(middleware.Recover, middleware.LogError),
+		server: goserver.NewHTTPServer(ctx, log, fmt.Sprintf(":%d", settings.Port)),
+		router: gorouter.NewRouter(log).Use(
+			middleware.Metrics(),
+			middleware.Recover,
+			middleware.LogError,
+		),
 	}
 }
 
 func (s *ServerBuilder) AddDebug() {
-	s.router.Install(plugin.NewPProf())
+	s.router.Install(plugin.NewPProf(), plugin.NewMetrics())
 }
 
 func (s *ServerBuilder) AddInspections(inspectionService *inspection.Service) {
@@ -74,7 +79,7 @@ func (s *ServerBuilder) AddBrigades(brigadeService *brigade.Service) {
 	subRouter.HandlePut("/{brigade_id}", handlers.UpdateBrigadeHandler(brigadeService))
 }
 
-func (s *ServerBuilder) Build() libserver.Server {
+func (s *ServerBuilder) Build() goserver.Server {
 	s.server.UseHandler(s.router)
 
 	return s.server
