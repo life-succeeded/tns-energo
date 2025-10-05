@@ -7,7 +7,7 @@ require (
 	github.com/lukasjarosch/go-docx v0.5.0
 	github.com/minio/minio-go/v7 v7.0.95
 	github.com/shopspring/decimal v1.4.0
-	github.com/sunshineOfficial/golib v0.0.6
+	github.com/sunshineOfficial/golib v0.0.7
 	github.com/xuri/excelize/v2 v2.9.0
 	go.mongodb.org/mongo-driver v1.17.4
 )
