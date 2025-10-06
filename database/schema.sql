@@ -1,13 +1,18 @@
--- Инспекторы
-create table if not exists inspectors
+-- Пользователи
+create table if not exists users
 (
-    id           int primary key generated always as identity,
-    surname      text        not null,
-    name         text        not null,
-    patronymic   text,
-    phone_number text        not null check ( phone_number ~ '^(\+7|8)\d{10}$' ),
-    created_at   timestamptz not null default now(),
-    updated_at   timestamptz not null default now()
+    id                          int primary key generated always as identity,
+    role_id                     int         not null, -- 0 - Inspector, 1 - Dispatcher, 2 - Specialist
+    surname                     text        not null,
+    name                        text        not null,
+    patronymic                  text,
+    phone_number                text        not null unique check ( phone_number ~ '^(\+7|8)\d{10}$' ),
+    email                       text        not null unique check ( email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' ),
+    password_hash               text,
+    refresh_token               text,
+    refresh_token_expired_after timestamptz,
+    created_at                  timestamptz not null default now(),
+    updated_at                  timestamptz not null default now()
 );
 
 -- Бригады
@@ -23,7 +28,7 @@ create table if not exists brigades
 create table if not exists brigade_members
 (
     brigade_id   int         not null references brigades (id) on delete cascade,
-    inspector_id int         not null references inspectors (id) on delete cascade,
+    inspector_id int         not null references users (id) on delete cascade,
     assigned_at  timestamptz not null default now(),
     primary key (brigade_id, inspector_id)
 );
@@ -195,6 +200,7 @@ create table if not exists reports
     check ( start_date <= end_date )
 );
 
+create index if not exists idx_users_role on users (role_id);
 create index if not exists idx_brigades_status on brigades (status);
 create index if not exists idx_subscribers_status on subscribers (status);
 create index if not exists idx_devices_object on devices (object_id);
@@ -207,13 +213,13 @@ create index if not exists idx_inspections_status on inspections (status);
 create index if not exists idx_inspection_attachments_inspection on inspection_attachments (inspection_id);
 create index if not exists idx_inspected_devices_inspection on inspected_devices (inspection_id);
 create index if not exists idx_inspected_seals_inspection on inspected_seals (inspection_id);
-create index idx_passports_subscriber on passports (subscriber_id);
-create index idx_contracts_subscriber on contracts (subscriber_id);
-create index idx_inspected_devices_device on inspected_devices (device_id);
-create index idx_inspected_seals_seal on inspected_seals (seal_id);
-create index idx_reports_dates on reports (start_date, end_date);
-create index idx_tasks_plan_visit_at on tasks (plan_visit_at);
-create index idx_inspections_inspect_at on inspections (inspect_at);
+create index if not exists idx_passports_subscriber on passports (subscriber_id);
+create index if not exists idx_contracts_subscriber on contracts (subscriber_id);
+create index if not exists idx_inspected_devices_device on inspected_devices (device_id);
+create index if not exists idx_inspected_seals_seal on inspected_seals (seal_id);
+create index if not exists idx_reports_dates on reports (start_date, end_date);
+create index if not exists idx_tasks_plan_visit_at on tasks (plan_visit_at);
+create index if not exists idx_inspections_inspect_at on inspections (inspect_at);
 
 create or replace function update_updated_at_column()
     returns trigger as
