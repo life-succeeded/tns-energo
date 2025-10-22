@@ -8,7 +8,9 @@ RUN go mod download
 
 # Копируем файлы, которые нужны в рантайме
 RUN mkdir out && \
-    mv .config/ out/
+    mkdir -p out/service/inspection/templates && \
+    mv .config/ out/ && \
+    mv service/inspection/templates/ out/service/inspection/
 
 # Билдим гошечку в бинарник out/app
 RUN go build -o out/app

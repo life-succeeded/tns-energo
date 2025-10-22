@@ -128,24 +128,24 @@ create table if not exists inspections
 (
     id                        int primary key generated always as identity,
     task_id                   int         not null references tasks (id),
-    status                    int,         -- 0 - InWork, 1 - Done
-    type                      int,         -- Тип проверки. 0 - Limitation, 1 - Resumption, 2 - Verification, 3 - UnauthorizedConnection
+    status                    int         not null, -- 0 - InWork, 1 - Done
+    type                      int,                  -- Тип проверки. 0 - Limitation, 1 - Resumption, 2 - Verification, 3 - UnauthorizedConnection
     act_number                text,
-    resolution                int,         -- Результаты проверки. 0 - Limited, 1 - Stopped, 2 - Resumed
-    limit_reason              text,        -- Основание введения ограничения (приостановления) режима потребления. Если NULL, то это неполная оплата
-    method                    text,        -- Способ введения ограничения, приостановления, возобновления режима потребления, номера и место установки пломб
-    method_by                 int,         -- Кем было введено. 0 - Consumer, 1 - Inspector
-    reason_type               int,         -- 0 - NotIntroduced, 1 - ConsumerLimited, 2 - InspectorLimited, 3 - Resumed
-    reason_description        text,        -- Причина невведения ограничения (только для reason_type = 0)
-    is_restriction_checked    bool,        -- Произведена проверка введенного ограничения
-    is_violation_detected     bool,        -- Нарушение потребителем введенного ограничения выявлено
-    is_expense_available      bool,        -- Наличие расхода после введенного ограничения
-    violation_description     text,        -- Иное описание выявленного нарушения/сведения, на основании которых сделан вывод о нарушении
-    is_unauthorized_consumers bool,        -- Самовольное подключение энергопринимающих устройств Потребителя к электрическим сетям
-    unauthorized_description  text,        -- Описание места и способа самовольного подключения к электрическим сетям
-    unauthorized_explanation  text,        -- Объяснение лица, допустившего самовольное подключение к электрическим сетям
-    inspect_at                timestamptz, -- Дата проверки
-    energy_action_at          timestamptz, -- Время действия над подачей электроэнергии
+    resolution                int,                  -- Результаты проверки. 0 - Limited, 1 - Stopped, 2 - Resumed
+    limit_reason              text,                 -- Основание введения ограничения (приостановления) режима потребления. Если NULL, то это неполная оплата
+    method                    text,                 -- Способ введения ограничения, приостановления, возобновления режима потребления, номера и место установки пломб
+    method_by                 int,                  -- Кем было введено. 0 - Consumer, 1 - Inspector
+    reason_type               int,                  -- 0 - NotIntroduced, 1 - ConsumerLimited, 2 - InspectorLimited, 3 - Resumed
+    reason_description        text,                 -- Причина невведения ограничения (только для reason_type = 0)
+    is_restriction_checked    bool,                 -- Произведена проверка введенного ограничения
+    is_violation_detected     bool,                 -- Нарушение потребителем введенного ограничения выявлено
+    is_expense_available      bool,                 -- Наличие расхода после введенного ограничения
+    violation_description     text,                 -- Иное описание выявленного нарушения/сведения, на основании которых сделан вывод о нарушении
+    is_unauthorized_consumers bool,                 -- Самовольное подключение энергопринимающих устройств Потребителя к электрическим сетям
+    unauthorized_description  text,                 -- Описание места и способа самовольного подключения к электрическим сетям
+    unauthorized_explanation  text,                 -- Объяснение лица, допустившего самовольное подключение к электрическим сетям
+    inspect_at                timestamptz,          -- Дата проверки
+    energy_action_at          timestamptz,          -- Время действия над подачей электроэнергии
     created_at                timestamptz not null default now(),
     updated_at                timestamptz not null default now()
 );
@@ -175,6 +175,7 @@ create table if not exists storage_files
     id        int primary key generated always as identity,
     file_name text not null,
     file_size int  not null,
+    bucket    text not null,
     url       text not null -- Ссылка на скачивание
 );
 
